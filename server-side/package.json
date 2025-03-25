@@ -13,6 +13,7 @@
   "dependencies": {
     "compression": "^1.8.0",
     "convert-excel-to-json": "^1.7.0",
+    "cors": "^2.8.5",
     "dotenv": "^16.4.7",
     "enum": "^3.0.4",
     "exceljs": "^4.4.0",

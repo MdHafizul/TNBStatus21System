@@ -31,6 +31,7 @@ exports.calculateDaysAndCategory = (data, dateColumn, type) => {
     return data.map(row => {
         const dateStr = row[dateColumn];
         const businessArea = row['Business Area'];
+        const namaKawasan = row['Business Area Name']; // Extract Business Area Name
         let category = null;
 
         if (!businessArea) {
@@ -70,18 +71,43 @@ exports.calculateDaysAndCategory = (data, dateColumn, type) => {
             return {
                 daysSince: daysDifference,
                 category,
-                BusinessArea: String(businessArea)
+                BusinessArea: String(businessArea),
+                'Business Area Name': namaKawasan, // Include Business Area Name
             };
         } else if (type === 'belumrevisit') {
             // For belumrevisit, this will be calculated in the controller
             return {
                 category: 'Belum Revisit',
-                BusinessArea: String(businessArea)
+                BusinessArea: String(businessArea),
+                'Business Area Name': namaKawasan, // Include Business Area Name
             };
         }
 
         return null; // Default case
     }).filter(row => row !== null); // Filter out null rows
+};exports.processFile = (req, res, next) => {
+    try {
+        const uploadedData = cache.get('uploadedData');
+
+        if (!uploadedData) {
+            return res.status(400).json({ error: 'No uploaded data found. Please upload a file first.' });
+        }
+
+        const { type } = req.query;
+
+        if (!type || !['revisit', 'disconnected', 'belumrevisit'].includes(type)) {
+            return res.status(400).json({ error: 'Invalid type parameter. Must be one of: revisit, disconnected, belumrevisit.' });
+        }
+
+        // Process the data
+        const processedData = fileProcessor.calculateDaysAndCategory(uploadedData.Sheet1, 'DateColumn', type);
+        const sortedData = fileProcessor.sortByBusinessArea(processedData);
+
+        res.json(sortedData); // Send the sorted data, including namaKawasan
+    } catch (error) {
+        console.error('Error processing file:', error);
+        res.status(500).json({ error: 'Error processing file.' });
+    }
 };
 // Function to sort data by Business Area
 exports.sortByBusinessArea = (data) => {
@@ -92,6 +118,7 @@ exports.sortByBusinessArea = (data) => {
     data.forEach(row => {
         const businessArea = String(row['BusinessArea']);
         const category = row['category'];
+        const namaKawasan = row['Business Area Name'];
 
 
         if (!businessArea || !category) return;
@@ -104,6 +131,7 @@ exports.sortByBusinessArea = (data) => {
         // Increment the total and the specific category count
         BACount[businessArea].total++;
         BACount[businessArea][category]++;
+        BACount[businessArea]['Business Area Name'] = namaKawasan;
 
     });
 

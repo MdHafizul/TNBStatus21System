@@ -1,4 +1,4 @@
-'use client'
+'use client';
 
 import Navbar from '../../components/navbar';
 import SummaryCards from '@/components/summaryCard';
@@ -21,10 +21,10 @@ export default function Dashboard() {
                 <h1 className="text-2xl font-bold mb-1">Dashboard</h1>
                 <p className="text-gray-600 mb-6">View and analyze disconnected accounts data.</p>
 
-                <SummaryCards />
+                <SummaryCards filter={filter}/>
                 <FilterDropdown onFilterChange={handleFilterChange} />
-                <TableView filter={filter} />
-                <ChartView filter={filter} />
+                <TableView filter={filter} /> 
+                <ChartView />
             </main>
         </>
     );
