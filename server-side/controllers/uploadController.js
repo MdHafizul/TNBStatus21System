@@ -1,8 +1,8 @@
 const fs = require('fs');
 const fileProcessor = require('../services/fileProcessor');
 const NodeCache = require('node-cache');
-const cache = new NodeCache({ stdTTL: 300 });
 const ErrorResponse = require('../utils/errorResponse');
+const cache = require('../utils/cache');
 
 // DESC: Upload the file and convert it to JSON
 // ACCESS: Public
@@ -13,9 +13,10 @@ const ErrorResponse = require('../utils/errorResponse');
 exports.uploadFile = async (req, res) => {
     try {
         if (!req.file) {
-            return res.status(400).send('No file uploaded.');
+            return res.status(400).json({ error: { message: 'No file uploaded.' } });
         }
 
+        const uploadDate = req.uploadDate; 
         console.time('File Processing Time');
 
         const result = await fileProcessor.uploadFile(req.file.path);
@@ -23,8 +24,8 @@ exports.uploadFile = async (req, res) => {
         // Remove the uploaded file after processing
         await fs.promises.unlink(req.file.path);
 
-        // Store the result in cache instead of global variable
-        cache.set('uploadedData', result);
+        // Store the result and selected date in cache
+        cache.set('uploadedData', { ...result, selectedDate: uploadDate.toISOString() });
 
         // Clear any previously cached results when new data is uploaded
         cache.del('disconnected_results');
@@ -35,10 +36,10 @@ exports.uploadFile = async (req, res) => {
 
         res.json(result);
     } catch (error) {
-        res.status(500).send(`Error processing file: ${error.message}`);
+        console.error('[ERROR] uploadFile:', error.message);
+        res.status(500).json({ error: { message: `Error processing file: ${error.message}` } });
     }
 };
-
 // DESC: Retrieve the days and category for  revisit ,belum revisit and disconnect dates
 // ACCESS: Public
 // ENDPOINT: /api/days-file
@@ -66,7 +67,6 @@ exports.daysAndCategory = (req, res, next) => {
         const cacheKey = `${type}_results`;
         const cachedResult = cache.get(cacheKey);
         if (cachedResult) {
-            console.log(`Serving ${type} data from cache`);
             return res.json(cachedResult);
         }
 
@@ -169,7 +169,6 @@ exports.processFile = (req, res, next) => {
         const cachedResult = cache.get(cacheKey);
 
         if (cachedResult) {
-            console.log(`Serving ${type} data from cache`);
             return res.json(cachedResult);
         }
 

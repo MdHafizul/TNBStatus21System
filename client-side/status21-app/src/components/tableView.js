@@ -27,7 +27,7 @@ export default function TableView({ filter }) {
             const response = await fetch('http://localhost:3000/api/process-file', {
                 method: 'GET',
                 headers: {
-                    'x-data-type': typeMap[filter], // Use the selected filter
+                    'x-data-type': typeMap[filter],
                 },
             });
 

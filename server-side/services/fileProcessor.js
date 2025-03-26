@@ -1,5 +1,7 @@
 const excelToJson = require('convert-excel-to-json');
 const fs = require('fs');
+const dateUtils = require('../utils/dateUtils');
+
 
 // Function to upload and process the file
 exports.uploadFile = async (filePath) => {
@@ -25,12 +27,14 @@ exports.uploadFile = async (filePath) => {
 };
 
 // Generic function to calculate the number of days and categorize data
-exports.calculateDaysAndCategory = (data, dateColumn, type) => {
-    const today = new Date();
+exports.calculateDaysAndCategory = (data, dateColumn, type, selectedDate) => {
+    // Ensure selectedDate is passed; fallback to current date if not provided
+    selectedDate = selectedDate ? new Date(selectedDate) : dateUtils.getDate();
 
     return data.map(row => {
         const dateStr = row[dateColumn];
         const businessArea = row['Business Area'];
+        const CA = row[`Contract Account`]
         const namaKawasan = row['Business Area Name']; // Extract Business Area Name
         let category = null;
 
@@ -50,7 +54,7 @@ exports.calculateDaysAndCategory = (data, dateColumn, type) => {
                 return null; // Skip rows with invalid dates
             }
 
-            const timeDifference = today - parsedDate;
+            const timeDifference = selectedDate - parsedDate;
             const daysDifference = Math.floor(timeDifference / (1000 * 60 * 60 * 24));
 
             // Categorize based on days difference
@@ -69,6 +73,7 @@ exports.calculateDaysAndCategory = (data, dateColumn, type) => {
             }
 
             return {
+                CA,
                 daysSince: daysDifference,
                 category,
                 BusinessArea: String(businessArea),
@@ -85,7 +90,9 @@ exports.calculateDaysAndCategory = (data, dateColumn, type) => {
 
         return null; // Default case
     }).filter(row => row !== null); // Filter out null rows
-};exports.processFile = (req, res, next) => {
+};
+
+exports.processFile = (req, res, next) => {
     try {
         const uploadedData = cache.get('uploadedData');
 
@@ -109,6 +116,7 @@ exports.calculateDaysAndCategory = (data, dateColumn, type) => {
         res.status(500).json({ error: 'Error processing file.' });
     }
 };
+
 // Function to sort data by Business Area
 exports.sortByBusinessArea = (data) => {
     const categories = ['0-1Months', '<3Months', '<6Months', '<12Months', '<2Years', '>2Years'];

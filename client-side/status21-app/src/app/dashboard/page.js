@@ -24,7 +24,7 @@ export default function Dashboard() {
                 <SummaryCards filter={filter}/>
                 <FilterDropdown onFilterChange={handleFilterChange} />
                 <TableView filter={filter} /> 
-                <ChartView />
+                <ChartView filter={filter} />
             </main>
         </>
     );
