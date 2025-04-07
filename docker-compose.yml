@@ -1,0 +1,30 @@
+version: '3.8'
+
+services:
+  backend:
+    image: hapejoy/status21-server:latest
+    build:
+      context: ./server-side
+      dockerfile: Dockerfile
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=production
+    networks:
+      - app-network
+
+  frontend:
+    image: hapejoy/status21-client:latest
+    build:
+      context: ./client-side/status21-app
+      dockerfile: Dockerfile
+    ports:
+      - "8080:80"
+    depends_on:
+      - backend
+    networks:
+      - app-network
+
+networks:
+  app-network:
+    driver: bridge
