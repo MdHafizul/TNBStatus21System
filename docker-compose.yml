@@ -1,5 +1,4 @@
-version: '3.8'
-
+# Docker Compose file for the Status21 application
 services:
   backend:
     image: hapejoy/status21-server:latest
@@ -12,6 +11,7 @@ services:
       - NODE_ENV=production
     networks:
       - app-network
+    restart: always # Automatically restart the backend container
 
   frontend:
     image: hapejoy/status21-client:latest
@@ -24,6 +24,7 @@ services:
       - backend
     networks:
       - app-network
+    restart: always # Automatically restart the frontend container
 
 networks:
   app-network:
