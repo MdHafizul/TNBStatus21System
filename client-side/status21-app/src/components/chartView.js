@@ -25,7 +25,7 @@ ChartJS.register(
 export default function ChartView({ filter }) {
   const [isLoading, setIsLoading] = useState(false);
   const [chartData, setChartData] = useState(null);
-  const [isFullScreen, setIsFullScreen] = useState(false); // State to manage full-screen mode
+  const [isFullScreen, setIsFullScreen] = useState(false);
 
   // Fetch file data from the API
   const fetchFileData = async () => {
@@ -109,7 +109,11 @@ export default function ChartView({ filter }) {
       },
       title: {
         display: true,
-        text: "Disconnected Accounts by Business Area",
+        text: `Status 21 - ${filter}`,
+        font: {
+          weight: "bold",
+          size: 16,
+        }
       },
       datalabels: {
         anchor: "center",
@@ -129,23 +133,24 @@ export default function ChartView({ filter }) {
       y: {
         stacked: false, // Ensure bars are not stacked
         beginAtZero: true,
+        grid: {
+          display: false,
+        }
       },
     },
     elements: {
       bar: {
-        minBarLength: 20, // Ensures each bar has a minimum length of 20 pixels
+        minBarLength: 50, // Ensures each bar has a minimum length of 20 pixels
       },
     },
   };
 
   return (
     <div
-      className={`bg-white rounded-lg border border-gray-200 p-6 mb-6 ${
-        isFullScreen ? "fixed inset-0 z-50 bg-white" : ""
-      }`}
+      className={`bg-white rounded-lg border border-gray-200 p-6 mb-6 ${isFullScreen ? "fixed inset-0 z-50 bg-white" : ""
+        }`}
     >
       <div className="flex justify-between items-center mb-4">
-        <h2 className="text-lg font-bold">Chart View</h2>
         <button
           onClick={() => setIsFullScreen(!isFullScreen)}
           className="px-4 py-2 bg-blue-500 text-white rounded-lg"
