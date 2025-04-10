@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { Bar } from "react-chartjs-2";
 import {
   Chart as ChartJS,
@@ -27,8 +27,34 @@ export default function ChartView({ filter }) {
   const [chartData, setChartData] = useState(null);
   const [isFullScreen, setIsFullScreen] = useState(false);
 
+  // Transform API data into Chart.js format
+  const transformDataForChart = useCallback((BACount) => {
+    const labels = Object.keys(BACount).map(
+      (key) => BACount[key]["Business Area Name"]
+    );
+    const categories = [
+      "0-1Months",
+      "<3Months",
+      "<6Months",
+      "<12Months",
+      "<2Years",
+      ">2Years",
+    ];
+
+    const datasets = categories.map((category) => ({
+      label: category,
+      data: Object.keys(BACount).map((key) => BACount[key][category] || 0),
+      backgroundColor: getCategoryColor(category),
+    }));
+
+    setChartData({
+      labels,
+      datasets,
+    });
+  }, []); // Memoize transformDataForChart
+
   // Fetch file data from the API
-  const fetchFileData = async () => {
+  const fetchFileData = useCallback(async () => {
     setIsLoading(true);
     try {
       const typeMap = {
@@ -55,33 +81,7 @@ export default function ChartView({ filter }) {
     } finally {
       setIsLoading(false);
     }
-  };
-
-  // Transform API data into Chart.js format
-  const transformDataForChart = (BACount) => {
-    const labels = Object.keys(BACount).map(
-      (key) => BACount[key]["Business Area Name"]
-    );
-    const categories = [
-      "0-1Months",
-      "<3Months",
-      "<6Months",
-      "<12Months",
-      "<2Years",
-      ">2Years",
-    ];
-
-    const datasets = categories.map((category) => ({
-      label: category,
-      data: Object.keys(BACount).map((key) => BACount[key][category] || 0),
-      backgroundColor: getCategoryColor(category),
-    }));
-
-    setChartData({
-      labels,
-      datasets,
-    });
-  };
+  }, [filter, transformDataForChart]); // Memoize fetchFileData
 
   const getCategoryColor = (category) => {
     const colors = {
@@ -97,7 +97,7 @@ export default function ChartView({ filter }) {
 
   useEffect(() => {
     fetchFileData();
-  }, [filter]);
+  }, [fetchFileData]); // Only run when fetchFileData changes
 
   // Chart options with datalabels configured to display inside the bars.
   const chartOptions = {

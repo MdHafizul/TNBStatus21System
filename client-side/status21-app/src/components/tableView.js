@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import Snackbar from "./snackBar";
 
 export default function TableView({ filter }) {
@@ -15,7 +15,7 @@ export default function TableView({ filter }) {
   });
   const [snackbar, setSnackbar] = useState({ message: "", type: "" });
 
-  const fetchFileData = async () => {
+  const fetchFileData = useCallback(async () => {
     setIsLoading(true);
 
     try {
@@ -76,11 +76,11 @@ export default function TableView({ filter }) {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [filter]);
 
   useEffect(() => {
     fetchFileData();
-  }, [filter]);
+  }, [fetchFileData]);
 
   return (
     <>
