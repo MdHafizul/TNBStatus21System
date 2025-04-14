@@ -12,7 +12,7 @@ RUN npm install
 COPY . .
 
 # Build the Next.js app for static export
-RUN npm run build 
+RUN npm run build
 
 # Use an Nginx image to serve the static files
 FROM nginx:alpine

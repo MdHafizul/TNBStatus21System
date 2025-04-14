@@ -13,12 +13,12 @@ services:
     restart: always
 
   frontend:
-    image: hapejoy/status21-client:v2.1 # Updated version
+    image: hapejoy/status21-client:v2.3 # Updated version
     build:
       context: ./client-side/status21-app
       dockerfile: Dockerfile
     ports:
-      - "8080:80"
+      - "8080:80" 
     depends_on:
       - backend
     networks:

@@ -25,16 +25,18 @@ export default function TableView({ filter }) {
         "Belum Revisit": "belumrevisit",
       };
 
+      const dataType = typeMap[filter] || "disconnected"; 
+
       const response = await fetch("http://localhost:3000/api/process-file", {
         method: "GET",
         headers: {
-          "x-data-type": typeMap[filter],
+          "x-data-type": dataType,
         },
       });
 
       if (!response.ok) {
-        throw new Error("Failed to fetch table data");
-      }
+        throw new Error(`Failed to fetch table data: ${response.statusText}`);
+    }
 
       const result = await response.json();
 
