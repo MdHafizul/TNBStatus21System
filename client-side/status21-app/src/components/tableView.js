@@ -25,7 +25,7 @@ export default function TableView({ filter }) {
         "Belum Revisit": "belumrevisit",
       };
 
-      const dataType = typeMap[filter] || "disconnected"; 
+      const dataType = typeMap[filter] || "disconnected";
 
       const response = await fetch("http://localhost:3000/api/process-file", {
         method: "GET",
@@ -36,7 +36,7 @@ export default function TableView({ filter }) {
 
       if (!response.ok) {
         throw new Error(`Failed to fetch table data: ${response.statusText}`);
-    }
+      }
 
       const result = await response.json();
 
@@ -100,13 +100,13 @@ export default function TableView({ filter }) {
             <thead className="bg-gray-50">
               <tr>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Kod Kwsn
+                  Kod Kawasan
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Nama Kawasan
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  BIL CA
+                  Bil CA
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   &gt; 2 years
@@ -115,10 +115,10 @@ export default function TableView({ filter }) {
                   &lt; 2 Years
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  &lt; 12 month
+                  &lt; 12 months
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  &lt; 6 month
+                  &lt; 6 months
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   &lt; 3 months

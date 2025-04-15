@@ -2,10 +2,6 @@
 
 DebtSentry is a system designed to manage and analyze disconnected accounts or debts data. It provides a dashboard for visualizing data, generating reports, and managing uploads.
 
-# Notes 
-
-This system is developed to tackle the problem at Tenaga Nasional Berhad Cawangan Ipoh in manual calculation, process and sorting data, this repo was created as a backup and guidance for future reference..
-
 ## Features
 
 - Upload Excel files containing disconnected accounts data.
@@ -22,8 +18,7 @@ This system is developed to tackle the problem at Tenaga Nasional Berhad Cawanga
 
 ## Setup Instructions
 
-### Local Deployment
-#### Backend (Server-Side)
+### Backend (Server-Side)
 
 1. Navigate to the `server-side` directory:
    ```bash
@@ -47,7 +42,7 @@ This system is developed to tackle the problem at Tenaga Nasional Berhad Cawanga
    npm run dev
    ```
 
-#### Frontend (Client-Side)
+### Frontend (Client-Side)
 
 1. Navigate to the `client-side/status21-app` directory:
    ```bash

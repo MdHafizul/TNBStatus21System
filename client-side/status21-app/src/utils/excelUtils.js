@@ -199,6 +199,9 @@ export async function generateExcelReport(filter, setFilter) {
             });
             const data = await response.json();
 
+            // Log the data to inspect its structure
+            console.log('Fetched data:', data.BACount);
+
             // Create worksheet for this filter
             const worksheet = workbook.addWorksheet(`${filterName}`, {
                 properties: {
@@ -209,17 +212,17 @@ export async function generateExcelReport(filter, setFilter) {
                 }
             });
 
-            // Transform data for Excel with Malay column headers
+            // Transform data for Excel with column headers
             const tableData = Object.entries(data.BACount).map(([key, value]) => ({
-                "Kod Kwsn": key,
-                "Nama Kawasan": value["Business Area Name"],
-                "BIL CA": value.total,
-                "> 2 years": value[">2Years"],
-                "< 2 Years": value["<2Years"],
-                "< 12 month": value["<12Months"],
-                "< 6 month": value["<6Months"],
-                "< 3 months": value["<3Months"],
-                "0-1 month": value["0-1Months"],
+                "Kod Kawasan": key,
+                "Nama Kawasan": value["Business Area Name"] || "Unknown",
+                "Bil CA": value.total || 0,
+                "> 2 years": value[">2Years"] || 0,
+                "< 2 Years": value["<2Years"] || 0,
+                "< 12 months": value["<12Months"] || 0,
+                "< 6 months": value["<6Months"] || 0,
+                "< 3 months": value["<3Months"] || 0,
+                "0-1 month": value["0-1Months"] || 0,
             }));
 
             // Add title
@@ -250,8 +253,8 @@ export async function generateExcelReport(filter, setFilter) {
 
             // Define columns with headers
             const headers = [
-                'Kod Kwsn', 'Nama Kawasan', 'BIL CA', '> 2 years',
-                '< 2 Years', '< 12 month', '< 6 month', '< 3 months', '0-1 month'
+                'Kod Kawasan', 'Nama Kawasan', 'Bil CA', '> 2 Years',
+                '< 2 Years', '< 12 Months', '< 6 Months', '< 3 Months', '0-1 Month'
             ];
 
             // Add header row at row 3
@@ -286,9 +289,9 @@ export async function generateExcelReport(filter, setFilter) {
 
             // Set column widths
             worksheet.columns = [
-                { key: 'kodKwsn', width: 18 },
+                { key: 'kodKawasan', width: 18 },
                 { key: 'namaKawasan', width: 32 },
-                { key: 'bilCa', width: 14 },
+                { key: 'bilCA', width: 14 },
                 { key: 'gt2Years', width: 14 },
                 { key: 'lt2Years', width: 14 },
                 { key: 'lt12Months', width: 14 },
@@ -300,13 +303,13 @@ export async function generateExcelReport(filter, setFilter) {
             // Add data rows starting from row 4
             tableData.forEach((row, rowIndex) => {
                 const dataRow = worksheet.getRow(rowIndex + 4);
-                dataRow.getCell(1).value = row["Kod Kwsn"];
+                dataRow.getCell(1).value = row["Kod Kawasan"];
                 dataRow.getCell(2).value = row["Nama Kawasan"];
-                dataRow.getCell(3).value = row["BIL CA"];
+                dataRow.getCell(3).value = row["Bil CA"];
                 dataRow.getCell(4).value = row["> 2 years"];
                 dataRow.getCell(5).value = row["< 2 Years"];
-                dataRow.getCell(6).value = row["< 12 month"];
-                dataRow.getCell(7).value = row["< 6 month"];
+                dataRow.getCell(6).value = row["< 12 months"];
+                dataRow.getCell(7).value = row["< 6 months"];
                 dataRow.getCell(8).value = row["< 3 months"];
                 dataRow.getCell(9).value = row["0-1 month"];
 
@@ -337,13 +340,13 @@ export async function generateExcelReport(filter, setFilter) {
             // Add totals row
             totalsRow.getCell(1).value = 'TOTAL';
             totalsRow.getCell(2).value = '';
-            totalsRow.getCell(3).value = tableData.reduce((sum, row) => sum + row["BIL CA"], 0);
-            totalsRow.getCell(4).value = tableData.reduce((sum, row) => sum + row["> 2 years"], 0);
-            totalsRow.getCell(5).value = tableData.reduce((sum, row) => sum + row["< 2 Years"], 0);
-            totalsRow.getCell(6).value = tableData.reduce((sum, row) => sum + row["< 12 month"], 0);
-            totalsRow.getCell(7).value = tableData.reduce((sum, row) => sum + row["< 6 month"], 0);
-            totalsRow.getCell(8).value = tableData.reduce((sum, row) => sum + row["< 3 months"], 0);
-            totalsRow.getCell(9).value = tableData.reduce((sum, row) => sum + row["0-1 month"], 0);
+            totalsRow.getCell(3).value = tableData.reduce((sum, row) => sum + (row["Bil CA"] || 0), 0);
+            totalsRow.getCell(4).value = tableData.reduce((sum, row) => sum + (row["> 2 years"] || 0), 0);
+            totalsRow.getCell(5).value = tableData.reduce((sum, row) => sum + (row["< 2 Years"] || 0), 0);
+            totalsRow.getCell(6).value = tableData.reduce((sum, row) => sum + (row["< 12 months"] || 0), 0);
+            totalsRow.getCell(7).value = tableData.reduce((sum, row) => sum + (row["< 6 months"] || 0), 0);
+            totalsRow.getCell(8).value = tableData.reduce((sum, row) => sum + (row["< 3 months"] || 0), 0);
+            totalsRow.getCell(9).value = tableData.reduce((sum, row) => sum + (row["0-1 month"] || 0), 0);
 
             // Style the totals row
             totalsRow.eachCell((cell, colNumber) => {
