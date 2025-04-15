@@ -87,7 +87,7 @@ export default function Upload() {
     <>
       <Navbar />
       <div className="container mx-auto px-4 py-6">
-        <h1 className="text-2xl font-bold mb-1">Upload Data</h1>
+        <h1 className="text-2xl font-bold mb-1">Welcome to Status21 System</h1>
         <p className="text-gray-600 mb-6">Upload Excel files containing disconnected accounts or debts data.</p>
 
         <div className="bg-white rounded-lg border border-gray-200 p-6 mb-6 shadow-sm">
@@ -99,7 +99,7 @@ export default function Upload() {
                 Your file has been uploaded and processed successfully.
               </p>
               <button
-                onClick={() => router.push('/dashboard')}
+                onClick={() => router.push('/status21/dashboard')}
                 className="inline-flex items-center px-6 py-3 border border-transparent text-sm font-medium 
                 rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
               >

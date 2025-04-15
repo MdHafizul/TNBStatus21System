@@ -1,8 +1,8 @@
 'use client';
 
-import Navbar from '../../components/navbar';
+import Navbar from '../../../components/navbar';
 import SummaryCards from '@/components/summaryCard';
-import FilterDropdown from '../../components/filterDropdown';
+import FilterDropdown from '../../../components/filterDropdown';
 import TableView from '@/components/tableView';
 import ChartView from '@/components/chartView';
 import GenerateReportButton from '@/components/reportButton';
