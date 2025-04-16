@@ -1,6 +1,6 @@
 const express = require('express');
 const multer = require('multer');
-const uploadController = require('../controllers/uploadController');
+const status21Controller = require('../controllers/status21Controller');
 
 const router = express.Router();
 
@@ -41,10 +41,10 @@ router.post(
         req.uploadDate = parsedDate;
         next();
     },
-    uploadController.uploadFile // Pass control to the uploadFile controller
+    status21Controller.uploadFile // Pass control to the uploadFile controller
 );
 
-router.get('/days-category', uploadController.daysAndCategory);
-router.get('/process-file', uploadController.processFile);
+router.get('/days-category', status21Controller.daysAndCategory);
+router.get('/process-file', status21Controller.processFile);
 
 module.exports = router;

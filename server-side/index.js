@@ -1,6 +1,6 @@
 require('dotenv').config();
 const express = require('express');
-const uploadRoutes = require('./routes/uploadRoutes');
+const status21Routes = require('./routes/status21Routes');
 const errorHandler = require('./middleware/errorHandler');
 const logger = require('./utils/logger');
 const compression = require('compression');
@@ -27,9 +27,11 @@ app.get('/', (req, res) => {
   res.status(200).send('Welcome to the DebtSentry API!');
 });
 
-
+// TODO: Change the endpoint to /api/v2/status21
 //Routes
-app.use('/api', uploadRoutes);
+app.use('/api', status21Routes);
+
+//TODO: Add another endpoint for GSorter /api/v2/gsorter
 
 //Error handler middleware
 app.use(errorHandler);

@@ -1,5 +1,6 @@
 const fs = require('fs');
 const fileProcessor = require('../services/fileProcessor');
+const dataProcessor = require('../services/Status21/dataProcessor');
 const NodeCache = require('node-cache');
 const ErrorResponse = require('../utils/errorResponse');
 const cache = require('../utils/cache');
@@ -16,7 +17,7 @@ exports.uploadFile = async (req, res) => {
             return res.status(400).json({ error: { message: 'No file uploaded.' } });
         }
 
-        const uploadDate = req.uploadDate; 
+        const uploadDate = req.uploadDate;
         console.time('File Processing Time');
 
         const result = await fileProcessor.uploadFile(req.file.path);
@@ -77,18 +78,18 @@ exports.daysAndCategory = (req, res, next) => {
 
         if (type === 'belumrevisit') {
             // Calculate "disconnected" and "revisit" counts
-            const disconnectedData = fileProcessor.calculateDaysAndCategory(data, 'Disconnected Date', 'disconnected');
+            const disconnectedData = dataProcessor.calculateDaysAndCategory(data, 'Disconnected Date', 'disconnected');
 
             // For revisit, filter data first but still use Disconnected Date for categorizing
-            const revisitData = fileProcessor.calculateDaysAndCategory(
+            const revisitData = dataProcessor.calculateDaysAndCategory(
                 data.filter(row => row['Latest Revisit Date']),
                 'Disconnected Date',
                 'revisit'
             );
 
             // Sort by Business Area for both datasets
-            const disconnectedBACount = fileProcessor.sortByBusinessArea(disconnectedData);
-            const revisitBACount = fileProcessor.sortByBusinessArea(revisitData);
+            const disconnectedBACount = dataProcessor.sortByBusinessArea(disconnectedData);
+            const revisitBACount = dataProcessor.sortByBusinessArea(revisitData);
 
             // Calculate "belumrevisit" by subtracting revisit counts from disconnected counts
             const belumRevisitBACount = {};
@@ -119,7 +120,7 @@ exports.daysAndCategory = (req, res, next) => {
         if (type === 'revisit') {
             // Filter to only include rows with revisit dates, but categorize by Disconnected Date
             const filteredData = data.filter(row => row['Latest Revisit Date']);
-            const daysProcessedAndCategory = fileProcessor.calculateDaysAndCategory(filteredData, 'Disconnected Date', type);
+            const daysProcessedAndCategory = dataProcessor.calculateDaysAndCategory(filteredData, 'Disconnected Date', type);
 
             result = {
                 type,
@@ -127,7 +128,7 @@ exports.daysAndCategory = (req, res, next) => {
             };
         } else {
             // For disconnected, process normally using Disconnected Date
-            const daysProcessedAndCategory = fileProcessor.calculateDaysAndCategory(data, 'Disconnected Date', type);
+            const daysProcessedAndCategory = dataProcessor.calculateDaysAndCategory(data, 'Disconnected Date', type);
 
             result = {
                 type,
@@ -180,17 +181,17 @@ exports.processFile = (req, res, next) => {
         // Process data based on type and cache the results
         if (type === 'belumrevisit') {
             // Calculate all disconnected accounts
-            const disconnectedData = fileProcessor.calculateDaysAndCategory(data, 'Disconnected Date', 'disconnected');
+            const disconnectedData = dataProcessor.calculateDaysAndCategory(data, 'Disconnected Date', 'disconnected');
 
             // Calculate accounts that have been revisited
-            const revisitData = fileProcessor.calculateDaysAndCategory(
+            const revisitData = dataProcessor.calculateDaysAndCategory(
                 data.filter(row => row['Latest Revisit Date']),
                 'Disconnected Date',
                 'revisit'
             );
 
-            const disconnectedBACount = fileProcessor.sortByBusinessArea(disconnectedData);
-            const revisitBACount = fileProcessor.sortByBusinessArea(revisitData);
+            const disconnectedBACount = dataProcessor.sortByBusinessArea(disconnectedData);
+            const revisitBACount = dataProcessor.sortByBusinessArea(revisitData);
 
             // Calculate belum revisit by subtracting revisited accounts from all disconnected accounts
             const belumRevisitBACount = {};
@@ -232,8 +233,8 @@ exports.processFile = (req, res, next) => {
         } else if (type === 'revisit') {
             // Filter for rows with revisit dates but categorize using disconnected date
             const filteredData = data.filter(row => row['Latest Revisit Date']);
-            const daysProcessedAndCategory = fileProcessor.calculateDaysAndCategory(filteredData, 'Disconnected Date', type);
-            const areaSorted = fileProcessor.sortByBusinessArea(daysProcessedAndCategory);
+            const daysProcessedAndCategory = dataProcessor.calculateDaysAndCategory(filteredData, 'Disconnected Date', type);
+            const areaSorted = dataProcessor.sortByBusinessArea(daysProcessedAndCategory);
 
             result = {
                 type,
@@ -241,8 +242,8 @@ exports.processFile = (req, res, next) => {
             };
         } else {
             // For disconnected, continue using the same approach
-            const daysProcessedAndCategory = fileProcessor.calculateDaysAndCategory(data, 'Disconnected Date', type);
-            const areaSorted = fileProcessor.sortByBusinessArea(daysProcessedAndCategory);
+            const daysProcessedAndCategory = dataProcessor.calculateDaysAndCategory(data, 'Disconnected Date', type);
+            const areaSorted = dataProcessor.sortByBusinessArea(daysProcessedAndCategory);
 
             result = {
                 type,
