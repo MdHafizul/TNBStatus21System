@@ -7,7 +7,7 @@ const cache = require('../utils/cache');
 
 // DESC: Upload the file and convert it to JSON
 // ACCESS: Public
-// ENDPOINT: /api/upload
+// @route POST /api/v2/status21/upload
 // METHOD: POST
 // REQUEST: File
 // RESPONSE: JSON
@@ -26,30 +26,34 @@ exports.uploadFile = async (req, res) => {
         await fs.promises.unlink(req.file.path);
 
         // Store the result and selected date in cache
-        cache.set('uploadedData', { ...result, selectedDate: uploadDate.toISOString() });
+        cache.set('status21Data', { ...result, selectedDate: uploadDate.toISOString() });
 
         // Clear any previously cached results when new data is uploaded
         cache.del('disconnected_results');
         cache.del('revisit_results');
         cache.del('belumrevisit_results');
 
-        console.timeEnd('File Processing Time');
-
-        res.json(result);
-    } catch (error) {
-        console.error('[ERROR] uploadFile:', error.message);
-        res.status(500).json({ error: { message: `Error processing file: ${error.message}` } });
+        return res.status(200).json({
+            success: true,
+            message: 'File uploaded and processed successfully',
+            data: result
+        });
+    } catch (error){
+        return res.status(500).json({
+            success: false,
+            message: 'Server Error',
+            error: error.message
+        });
     }
 };
 
 
-// DESC: Retrieve the days and category for  revisit ,belum revisit and disconnect dates
-// ACCESS: Public
-// ENDPOINT: /api/days-file
-// METHOD: GET
+// @DESC: Retrieve the days and category for  revisit ,belum revisit and disconnect dates
+// @route GET /api/v2/status21/daysAndCategory
+// @ACCESS: Public
 exports.daysAndCategory = (req, res, next) => {
     try {
-        const uploadedData = cache.get('uploadedData');
+        const uploadedData = cache.get('status21Data');
 
         if (!uploadedData) {
             throw new ErrorResponse('No data available.', 400, 'NO_DATA');
@@ -146,13 +150,12 @@ exports.daysAndCategory = (req, res, next) => {
 };
 
 
-// DESC: Process the uploaded file and return the number of days and category and sorted by BA
-// ACCESS: Public
-// ENDPOINT: /api/process-file
-// METHOD: GET
+// @DESC: Process the uploaded file and return the number of days and category and sorted by BA
+// @route GET api/v2/status21/process-file
+// @ACCESS: Public
 exports.processFile = (req, res, next) => {
     try {
-        const uploadedData = cache.get('uploadedData');
+        const uploadedData = cache.get('status21Data');
 
         if (!uploadedData) {
             throw new ErrorResponse('No data available.', 400, 'NO_DATA');

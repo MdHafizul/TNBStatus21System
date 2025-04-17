@@ -78,9 +78,10 @@ exports.sortByBusinessArea = (data) => {
         const category = row['category'];
         const namaKawasan = row['Business Area Name'];
 
-
+        // Skip rows without a business area or category
         if (!businessArea || !category) return;
-
+        
+        // Initialize the business area entry if it doesn't exist
         if (!BACount[businessArea]) {
             BACount[businessArea] = { total: 0 };
             categories.forEach(cat => (BACount[businessArea][cat] = 0));

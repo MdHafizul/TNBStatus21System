@@ -2,7 +2,7 @@ const express = require('express');
 const multer = require('multer');
 const status21Controller = require('../controllers/status21Controller');
 
-const router = express.Router();
+const status21Router = express.Router();
 
 // Configure multer for file storage
 const upload = multer({
@@ -21,11 +21,11 @@ const upload = multer({
 });
 
 // Define routes
-router.post(
+status21Router.post(
     '/upload',
     upload.single('file'), // Handle single file upload
     (req, res, next) => {
-        // Middleware to parse additional fields like `uploadDate`
+
         const { uploadDate } = req.body;
 
         if (!uploadDate) {
@@ -44,7 +44,7 @@ router.post(
     status21Controller.uploadFile // Pass control to the uploadFile controller
 );
 
-router.get('/days-category', status21Controller.daysAndCategory);
-router.get('/process-file', status21Controller.processFile);
+status21Router.get('/days-category', status21Controller.daysAndCategory);
+status21Router.get('/process-file', status21Controller.processFile);
 
-module.exports = router;
+module.exports = status21Router;
