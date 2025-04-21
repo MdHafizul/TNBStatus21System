@@ -60,6 +60,7 @@ export default function SummaryTableView() {
                                     Jumlah Tunggakan
                                 </th>
                             </tr>
+                            <tr></tr>
                         </thead>
                         <tbody className="bg-white divide-y divide-blue-100">
                             {isLoading ? (
@@ -67,13 +68,27 @@ export default function SummaryTableView() {
                                     <td colSpan={3} className="text-center py-4 text-gray-500">Loading...</td>
                                 </tr>
                             ) : (
-                                data.map((row, idx) => (
-                                    <tr key={idx}>
-                                        <td className="px-6 py-4 whitespace-nowrap">{row.namaAgensi}</td>
-                                        <td className="px-6 py-4 whitespace-nowrap">{row.bilAkaun}</td>
-                                        <td className="px-6 py-4 whitespace-nowrap">RM {row.jumlahTunggakan.toLocaleString()}</td>
-                                    </tr>
-                                ))
+                                <>
+                                    {data.filter(row => row.namaAgensi !== 'JUMLAH').map((row, idx) => (
+                                        <tr key={idx}>
+                                            <td className="px-6 py-4 whitespace-nowrap">{row.namaAgensi}</td>
+                                            <td className="px-6 py-4 whitespace-nowrap">{row.bilAkaun}</td>
+                                            <td className="px-6 py-4 whitespace-nowrap">RM {Number(row.jumlahTunggakan).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
+                                        </tr>
+                                    ))}
+                                    {/* Total row */}
+                                    {data.some(row => row.namaAgensi === 'JUMLAH') && (
+                                        <tr className="bg-blue-100 font-bold">
+                                            <td className="px-6 py-4 whitespace-nowrap">JUMLAH</td>
+                                            <td className="px-6 py-4 whitespace-nowrap">
+                                                {data.find(row => row.namaAgensi === 'JUMLAH')?.bilAkaun}
+                                            </td>
+                                            <td className="px-6 py-4 whitespace-nowrap">
+                                                RM {data.find(row => row.namaAgensi === 'JUMLAH')?.jumlahTunggakan.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                                            </td>
+                                        </tr>
+                                    )}
+                                </>
                             )}
                         </tbody>
                     </table>

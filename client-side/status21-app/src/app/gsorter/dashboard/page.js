@@ -4,7 +4,7 @@ import Navbar from '@/components/navbar';
 import { useState } from 'react';
 import FilterDropdown from '@/components/GovSorter/filterDropdown';
 import SummaryTableView from '@/components/GovSorter/summaryTableView';
-import AgensiSummaryTableView from '@/components/GovSorter/agensiSummartyTableView';
+import AgensiSummaryTableView from '@/components/GovSorter/agensiSummaryTableView';
 import DetailedTableView from '@/components/GovSorter/detailedTableView';
 
 export default function GSorterDashboard() {
@@ -31,7 +31,7 @@ export default function GSorterDashboard() {
                 <FilterDropdown filter={filter} setFilter={setFilter} />
 
                 {/* Agensi Summary Table */}
-                <h2 className="text-xl font-semibold mb-2 text-blue-700">Agensi Summarised Table</h2>
+                <h2 className="text-xl font-semibold mb-2 text-blue-700">Agency Summarised Table</h2>
                 <AgensiSummaryTableView filter={filter} />
 
                 {/* Detailed Table */}

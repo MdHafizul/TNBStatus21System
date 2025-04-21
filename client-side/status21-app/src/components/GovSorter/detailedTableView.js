@@ -55,7 +55,7 @@ export default function DetailedTableView({ filter }) {
                             <th className="px-4 py-3 text-left text-xs font-semibold text-blue-700 uppercase tracking-wider">Acc Status</th>
                             <th className="px-4 py-3 text-left text-xs font-semibold text-blue-700 uppercase tracking-wider">Status Pukal</th>
                             <th className="px-4 py-3 text-left text-xs font-semibold text-blue-700 uppercase tracking-wider">No of Months Outstanding</th>
-                            <th className="px-4 py-3 text-left text-xs font-semibold text-blue-700 uppercase tracking-wider">Cur.MthUnpaid</th>
+                            <th className="px-4 py-3 text-left text-xs font-semibold text-blue-700 uppercase tracking-wider">Current Month Unpaid</th>
                             <th className="px-4 py-3 text-left text-xs font-semibold text-blue-700 uppercase tracking-wider">TTL O/S AMT</th>
                             <th className="px-4 py-3 text-left text-xs font-semibold text-blue-700 uppercase tracking-wider">Total Unpaid</th>
                             <th className="px-4 py-3 text-left text-xs font-semibold text-blue-700 uppercase tracking-wider">Move Out Date</th>
@@ -67,25 +67,59 @@ export default function DetailedTableView({ filter }) {
                                 <td colSpan={15} className="text-center py-4 text-gray-500">Loading...</td>
                             </tr>
                         ) : (
-                            data.map((row, idx) => (
-                                <tr key={idx}>
-                                    <td className="px-4 py-2 whitespace-nowrap">{row['Customer Group']}</td>
-                                    <td className="px-4 py-2 whitespace-nowrap">{row['Sector']}</td>
-                                    <td className="px-4 py-2 whitespace-nowrap">{row['SMER Segment']}</td>
-                                    <td className="px-4 py-2 whitespace-nowrap">{row['Business Area']}</td>
-                                    <td className="px-4 py-2 whitespace-nowrap">{row['Contract Account']}</td>
-                                    <td className="px-4 py-2 whitespace-nowrap">{row['Contract Account Name']}</td>
-                                    <td className="px-4 py-2 whitespace-nowrap">{row['ADID']}</td>
-                                    <td className="px-4 py-2 whitespace-nowrap">{row['Acc Class']}</td>
-                                    <td className="px-4 py-2 whitespace-nowrap">{row['Acc Status']}</td>
-                                    <td className="px-4 py-2 whitespace-nowrap">{row['Status Pukal']}</td>
-                                    <td className="px-4 py-2 whitespace-nowrap">{row['No of Months Outstanding']}</td>
-                                    <td className="px-4 py-2 whitespace-nowrap">RM {Number(row['Cur.MthUnpaid']).toLocaleString()}</td>
-                                    <td className="px-4 py-2 whitespace-nowrap">RM {Number(row['TTL O/S AMT']).toLocaleString()}</td>
-                                    <td className="px-4 py-2 whitespace-nowrap">RM {Number(row['Total Unpaid']).toLocaleString()}</td>
-                                    <td className="px-4 py-2 whitespace-nowrap">{row['Move Out Date']}</td>
-                                </tr>
-                            ))
+                            <>
+                                {data.filter(row => row['Customer Group'] !== 'JUMLAH').map((row, idx) => (
+                                    <tr key={idx}>
+                                        <td className="px-4 py-2 whitespace-nowrap">{row['Customer Group']}</td>
+                                        <td className="px-4 py-2 whitespace-nowrap">{row['Sector']}</td>
+                                        <td className="px-4 py-2 whitespace-nowrap">{row['SMER Segment']}</td>
+                                        <td className="px-4 py-2 whitespace-nowrap">{row['Business Area']}</td>
+                                        <td className="px-4 py-2 whitespace-nowrap">{row['Contract Account']}</td>
+                                        <td className="px-4 py-2 whitespace-nowrap">{row['Contract Account Name']}</td>
+                                        <td className="px-4 py-2 whitespace-nowrap">{row['ADID']}</td>
+                                        <td className="px-4 py-2 whitespace-nowrap">{row['Acc Class']}</td>
+                                        <td className="px-4 py-2 whitespace-nowrap">{row['Acc Status']}</td>
+                                        <td className="px-4 py-2 whitespace-nowrap">{row['Status Pukal']}</td>
+                                        <td className="px-4 py-2 whitespace-nowrap">{row['No of Months Outstanding']}</td>
+                                        <td className="px-4 py-2 whitespace-nowrap">
+                                            RM {Number(row['Current Month Unpaid']).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                                        </td>
+                                        <td className="px-4 py-2 whitespace-nowrap">
+                                            RM {Number(row['TTL O/S AMT']).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                                        </td>
+                                        <td className="px-4 py-2 whitespace-nowrap">
+                                            RM {Number(row['Total Unpaid']).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                                        </td>
+                                        <td className="px-4 py-2 whitespace-nowrap">{row['Move Out Date']}</td>
+                                    </tr>
+                                ))}
+                                {/* Total row */}
+                                {data.some(row => row['Customer Group'] === 'JUMLAH') && (
+                                    <tr className="bg-blue-100 font-bold">
+                                        <td className="px-4 py-2 whitespace-nowrap">JUMLAH</td>
+                                        <td className="px-4 py-2 whitespace-nowrap"></td>
+                                        <td className="px-4 py-2 whitespace-nowrap"></td>
+                                        <td className="px-4 py-2 whitespace-nowrap"></td>
+                                        <td className="px-4 py-2 whitespace-nowrap"></td>
+                                        <td className="px-4 py-2 whitespace-nowrap"></td>
+                                        <td className="px-4 py-2 whitespace-nowrap"></td>
+                                        <td className="px-4 py-2 whitespace-nowrap"></td>
+                                        <td className="px-4 py-2 whitespace-nowrap"></td>
+                                        <td className="px-4 py-2 whitespace-nowrap"></td>
+                                        <td className="px-4 py-2 whitespace-nowrap"></td>
+                                        <td className="px-4 py-2 whitespace-nowrap">
+                                            RM {Number(data.find(row => row['Customer Group'] === 'JUMLAH')?.['Current Month Unpaid'] || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                                        </td>
+                                        <td className="px-4 py-2 whitespace-nowrap">
+                                            RM {Number(data.find(row => row['Customer Group'] === 'JUMLAH')?.['TTL O/S AMT'] || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                                        </td>
+                                        <td className="px-4 py-2 whitespace-nowrap">
+                                            RM {Number(data.find(row => row['Customer Group'] === 'JUMLAH')?.['Total Unpaid'] || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                                        </td>
+                                        <td className="px-4 py-2 whitespace-nowrap"></td>
+                                    </tr>
+                                )}
+                            </>
                         )}
                     </tbody>
                 </table>
