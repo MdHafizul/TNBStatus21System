@@ -6,22 +6,21 @@ exports.processAndSortByCategory = (data) => {
     return data.map(row => {
         const kategori = findCategoryByName(row['Contract Account Name']);
         return {
-            // 'Customer Group': row['Customer Group'],
-            // 'Sector': row['Sector'],
-            // 'SMER Segment': row['SMER Segment'],
-            // 'Business Area': row['Buss Area'],
-            // 'Business Area Name': row['Business Area Name'],
-            // 'Contract Account': row['Contract Acc'],
+            'Customer Group': row['Customer Group'],
+            'Sector': row['Sector'],
+            'SMER Segment': row['SMER Segment'],
+            'Business Area': row['Buss Area'],
+            'Contract Account': row['Contract Acc'],
             'Contract Account Name': row['Contract Account Name'],
-            // 'ADID': row['ADID'],
-            // 'Acc Class': row['Acc Class'],
-            // 'Acc Status': row['Acc Status'],
-            // 'Status Pukal': row['Status Pukal'],
-            // 'No of Months Outstanding': row['No of Months Outstanding'],
-            // 'Cur.MthUnpaid': row['Cur.MthUnpaid'],
-            // 'TTL O/S AMT': row['TTL O/S AMT'],
-            // 'Total Unpaid': row['Total Unpaid'],
-            // 'Move Out Date': row['Move Out Date'],
+            'ADID': row['ADID'],
+            'Acc Class': row['Acc Class'],
+            'Acc Status': row['Acc Status'],
+            'Status Pukal': row['Status Pukal'],
+            'No of Months Outstanding': row['No of Months Outstandings'],
+            'Cur.MthUnpaid': row['Cur.MthUnpaid'],
+            'TTL O/S AMT': row['TTL O/S Amt'],
+            'Total Unpaid': row['Total Unpaid'],
+            'Move Out Date': row['Move Out Date'],
             'Category': kategori,
         };
     })
@@ -34,36 +33,29 @@ exports.summaryTable = (data) => {
     data.forEach(row => {
         const category = row['Category'];
         const jumlahTunggakan = parseFloat(row['TTL O/S AMT']) || 0;
-
-        if (!category) return; // Skip rows without a category
-
+        if (!category) return;
         if (!summary[category]) {
             summary[category] = {
                 countCategory: 0,
                 jumlahTunggakan: 0,
             };
         }
-
         summary[category].countCategory += 1;
         summary[category].jumlahTunggakan += jumlahTunggakan;
-
     });
-    // Convert to array if you want a list format
     return Object.entries(summary).map(([category, stats]) => ({
         Category: category,
-        Count: stats.countCategory,
-        jumlahTunggakan: stats.jumlahTunggakan
+        BilAkaun: stats.countCategory,
+        JumlahTunggakan: Number(stats.jumlahTunggakan.toFixed(2)),
     }));
 }
 
 //Generic function to calculate sort for AgensiSummarisedTable
 
 exports.agensiSummarisedTable = (data, filters) => {
-
-    //default filter
     const { category = 'ALL', AccClass = 'ALL', AccStatus = 'ALL', ADID = 'ALL', StatusPukal = 'ALL' } = filters;
 
-    //filter the data based on the filters
+    // Filter the data based on the filters
     const filteredData = data.filter(row => {
         if (category !== 'ALL' && row['Category'] !== category) return false;
         if (AccClass !== 'ALL' && row['Acc Class'] !== AccClass) return false;
@@ -71,43 +63,53 @@ exports.agensiSummarisedTable = (data, filters) => {
         if (ADID !== 'ALL' && row['ADID'] !== ADID) return false;
         if (StatusPukal !== 'ALL' && row['Status Pukal'] !== StatusPukal) return false;
         return true;
-    })
+    });
 
-    //groupBy the data based on the filters
-    const groupBy = ['Business Area']
-    if (category == 'ALL') groupBy.push('Category')
-    if (AccClass == 'ALL') groupBy.push('Acc Class')
-    if (AccStatus == 'ALL') groupBy.push('Acc Status')
-    if (ADID == 'ALL') groupBy.push('ADID')
-    if (StatusPukal == 'ALL') groupBy.push('Status Pukal')
-
-    //grouped the data
-    const groupedData = {}
+    // Group by only 'Business Area'
+    const groupedData = {};
     filteredData.forEach(row => {
-        const groupKey = groupBy.map(field => row[field]).join('|');
-
-
+        const groupKey = row['Business Area'];
         if (!groupedData[groupKey]) {
             groupedData[groupKey] = {
                 'Buss Area': row['Business Area'],
                 'Bil Akaun': 0,
-                'Acc Status': row['Acc Status'],
-                'Status Pukal': row['Status Pukal'],
-                'ADID': row['ADID'],
+                'Acc Status': new Set(),
+                'Acc Class': new Set(),
+                'Status Pukal': new Set(),
+                'ADID': new Set(),
                 'TTL O/S AMT': 0,
                 'Total Unpaid': 0
             };
-        };
-        // Add this row's values to the group
+        }
         groupedData[groupKey]['Bil Akaun'] += 1;
+        groupedData[groupKey]['Acc Status'].add(row['Acc Status']);
+        groupedData[groupKey]['Acc Class'].add(row['Acc Class']);
+        groupedData[groupKey]['Status Pukal'].add(row['Status Pukal']);
+        groupedData[groupKey]['ADID'].add(row['ADID']);
         groupedData[groupKey]['TTL O/S AMT'] += Number(row['TTL O/S AMT']) || 0;
         groupedData[groupKey]['Total Unpaid'] += Number(row['Total Unpaid']) || 0;
     });
-    // Convert the grouped object to an array for easier use
-    const result = Object.values(groupedData);
-    return Object.values(groupedData);
-}
 
+    // Convert sets to arrays or strings
+    const result = Object.values(groupedData).map(group => {
+        const formatField = (set) => {
+            const arr = Array.from(set);
+            return arr.length === 1 ? arr[0] : arr;
+        };
+        return {
+            'Buss Area': group['Buss Area'],
+            'Bil Akaun': group['Bil Akaun'],
+            'Acc Status': formatField(group['Acc Status']),
+            'Acc Class': formatField(group['Acc Class']),
+            'Status Pukal': formatField(group['Status Pukal']),
+            'ADID': formatField(group['ADID']),
+            'TTL O/S AMT': Number(group['TTL O/S AMT'].toFixed(2)),
+            'Total Unpaid': Number(group['Total Unpaid'].toFixed(2))
+        };
+    });
+
+    return result;
+}
 //Generic function to display detailed table
 
 exports.detailedTable = (data, filters) => {
@@ -131,8 +133,8 @@ exports.detailedTable = (data, filters) => {
             'Customer Group': row['Customer Group'],
             'Sector': row['Sector'],
             'SMER Segment': row['SMER Segment'],
-            'Business Area': row['Bussiness Area'],
-            'Contract Account': row['Contract Acc'],
+            'Business Area': row['Business Area'],
+            'Contract Account': row['Contract Account'],
             'Contract Account Name': row['Contract Account Name'],
             'ADID': row['ADID'],
             'Acc Class': row['Acc Class'],

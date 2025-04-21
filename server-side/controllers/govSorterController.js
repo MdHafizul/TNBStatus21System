@@ -23,11 +23,16 @@ exports.uploadFile = async (req, res, next) => {
 
         //store the result
         cache.set('govSorterData', result);
+        // Automatically process and sort after upload
+        const data = result.Sheet1;
+        const processedData = govProcessor.processAndSortByCategory(data);
+        cache.set('results', processedData, 1200);
+
 
         res.status(200).json({
             success: true,
             message: 'File uploaded and processed successfully',
-            data: result
+            data: processedData
         });
     } catch (error) {
         return next(new ErrorResponse('Server Error: ' + error.message, 500));
@@ -74,28 +79,24 @@ exports.processAndSort = async (req, res, next) => {
 // @DESC : Get Summary Data
 // @route GET /api/v2/govSorter/summary
 // @access Public
-
 exports.getSummary = async (req, res, next) => {
     try {
-        const uploadedData = cache.get(processedData);
-
-        if (!uploadedData) {
+        const processedData = cache.get('results');
+        if (!processedData) {
             return next(new ErrorResponse('No data found. Please upload a file first.', 404));
         }
 
         // Check cache first
-        const cacheKey = `results`;
-        const cachedResult = cache.get(cacheKey);
-
-        if (cachedResult) {
-            return res.json(cachedResult);
+        const data = Array.isArray(processedData) ? processedData : processedData.Sheet1;
+        if (!data) {
+            return next(new ErrorResponse('No processed data available.', 500));
         }
 
-        const data = uploadedData.Sheet1
         const summaryData = govProcessor.summaryTable(data);
 
         //cache the result
-        cache.set('govSorterSummary', summaryData, 1200);
+        cache.set('govSorterAgensiSummary', summaryData, 1200);
+
 
         res.status(200).json({
             success: true,
@@ -106,29 +107,23 @@ exports.getSummary = async (req, res, next) => {
         return next(new ErrorResponse('Server Error: ' + error.message, 500));
     }
 }
-
 // @DESC : Get Agensi Summarised Data
 // @route GET /api/v2/govSorter/agensi-summary
 // @access Public
 exports.getAgensiSummary = async (req, res, next) => {
     try {
-        const uploadedData = cache.get(processedData);
+        const processedData = cache.get('results');
 
-        if (!uploadedData) {
+        if (!processedData) {
             return next(new ErrorResponse('No data found. Please upload a file first.', 404));
         }
 
         const filters = req.body;
 
-        // Check cache first
-        const cacheKey = `results`;
-        const cachedResult = cache.get(cacheKey);
-
-        if (cachedResult) {
-            return res.json(cachedResult);
+        const data = Array.isArray(processedData) ? processedData : processedData.Sheet1;
+        if (!data) {
+            return next(new ErrorResponse('No processed data available.', 500));
         }
-
-        const data = uploadedData.Sheet1
         const agensiSummaryData = govProcessor.agensiSummarisedTable(data, filters);
 
         //cache the result
@@ -148,26 +143,21 @@ exports.getAgensiSummary = async (req, res, next) => {
 // @DESC : Get Detailed data
 // @route GET /api/v2/govSorter/detail-data
 // @access Public
-
 exports.getDetailData = async (req, res, next) => {
     try {
-        const uploadedData = cache.get(processedData);
 
-        if (!uploadedData) {
+        const processedData = cache.get('results');
+
+        if (!processedData) {
             return next(new ErrorResponse('No data found. Please upload a file first.', 404));
         }
 
         const filters = req.body;
 
-        // Check cache first
-        const cacheKey = `results`;
-        const cachedResult = cache.get(cacheKey);
-
-        if (cachedResult) {
-            return res.json(cachedResult);
+        const data = Array.isArray(processedData) ? processedData : processedData.Sheet1;
+        if (!data) {
+            return next(new ErrorResponse('No processed data available.', 500));
         }
-
-        const data = uploadedData.Sheet1
         const detailedData = govProcessor.detailedTable(data, filters);
 
         //cache the result
