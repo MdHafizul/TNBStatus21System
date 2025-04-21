@@ -27,7 +27,7 @@ export default function Upload() {
     formData.append('uploadDate', selectedDate.toISOString());
 
     try {
-      const response = await fetch('http://localhost:3000/api/upload', {
+      const response = await fetch('http://localhost:3000/api/v2/status21/upload', {
         method: 'POST',
         body: formData,
       });

@@ -65,7 +65,7 @@ export default function ChartView({ filter }) {
 
       const dataType = typeMap[filter] || "disconnected"; 
 
-      const response = await fetch(`http://localhost:3000/api/process-file`, {
+      const response = await fetch(`http://localhost:3000/api/v2/status21/process-file`, {
         method: "GET",
         headers: {
           "x-data-type": dataType,

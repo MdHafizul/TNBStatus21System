@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import Snackbar from "./snackBar";
+import Snackbar from "../snackBar";
 
 export default function SummaryCards() {
   const [isLoading, setIsLoading] = useState(false);
@@ -18,7 +18,7 @@ export default function SummaryCards() {
       const results = {};
 
       for (const type of types) {
-        const response = await fetch("http://localhost:3000/api/process-file", {
+        const response = await fetch("http://localhost:3000/api/v2/status21/process-file", {
           method: "GET",
           headers: {
             "x-data-type": type,

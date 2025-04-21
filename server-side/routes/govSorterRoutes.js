@@ -29,7 +29,7 @@ govSorterRouter.post(
 
 govSorterRouter.get('/proccesedAndSortedData', govSorterController.processAndSort);
 govSorterRouter.get('/summary', govSorterController.getSummary);
-govSorterRouter.get('/agensiSummary', govSorterController.getAgensiSummary);
-govSorterRouter.get('/detailedData', govSorterController.getDetailData);
+govSorterRouter.post('/agensiSummary', govSorterController.getAgensiSummary);
+govSorterRouter.post('/detailedData', govSorterController.getDetailData);
 
 module.exports = govSorterRouter;
