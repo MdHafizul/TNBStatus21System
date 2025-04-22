@@ -21,7 +21,7 @@ export default function Dashboard() {
             <main className="container mx-auto px-4 py-6">
                 <h1 className="text-2xl font-bold mb-1">Dashboard</h1>
                 <p className="text-gray-600 mb-6">View and analyze disconnected accounts data.</p>
-                <GenerateReportButton filter={filter} setFilter={setFilter} />
+                <GenerateReportButton filter={filter} setFilter={setFilter} type="status21" />
                 <SummaryCards filter={filter} />
                 <FilterDropdown onFilterChange={handleFilterChange} />
                 <TableView filter={filter} />

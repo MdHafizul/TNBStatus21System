@@ -55,9 +55,9 @@ export default function DetailedTableView({ filter }) {
                             <th className="px-4 py-3 text-left text-xs font-semibold text-blue-700 uppercase tracking-wider">Acc Status</th>
                             <th className="px-4 py-3 text-left text-xs font-semibold text-blue-700 uppercase tracking-wider">Status Pukal</th>
                             <th className="px-4 py-3 text-left text-xs font-semibold text-blue-700 uppercase tracking-wider">No of Months Outstanding</th>
-                            <th className="px-4 py-3 text-left text-xs font-semibold text-blue-700 uppercase tracking-wider">Current Month Unpaid</th>
-                            <th className="px-4 py-3 text-left text-xs font-semibold text-blue-700 uppercase tracking-wider">TTL O/S AMT</th>
-                            <th className="px-4 py-3 text-left text-xs font-semibold text-blue-700 uppercase tracking-wider">Total Unpaid</th>
+                            <th className="px-4 py-3 text-left text-xs font-semibold text-blue-700 uppercase tracking-wider">Current Month Unpaid(RM)</th>
+                            <th className="px-4 py-3 text-left text-xs font-semibold text-blue-700 uppercase tracking-wider">TTL O/S AMT(RM)</th>
+                            <th className="px-4 py-3 text-left text-xs font-semibold text-blue-700 uppercase tracking-wider">Total Unpaid(RM)</th>
                             <th className="px-4 py-3 text-left text-xs font-semibold text-blue-700 uppercase tracking-wider">Move Out Date</th>
                         </tr>
                     </thead>

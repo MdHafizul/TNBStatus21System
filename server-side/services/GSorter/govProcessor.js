@@ -127,10 +127,10 @@ exports.agensiSummarisedTable = (data, filters) => {
 
     result.push({
         'Buss Area': 'JUMLAH',
-        'Acc Status': 'JUMLAH',
-        'Acc Class': 'JUMLAH',
-        'Status Pukal': 'JUMLAH',
-        'ADID': 'JUMLAH',
+        'Acc Status': '',
+        'Acc Class': '',
+        'Status Pukal': '',
+        'ADID': '',
         'Bil Akaun': totalBilAkaun,
         'TTL O/S AMT': Number(totalTTL.toFixed(2)),
         'Total Unpaid': Number(totalUnpaid.toFixed(2))

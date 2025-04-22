@@ -25,5 +25,3 @@ exports.uploadFile = async (filePath) => {
         readStream.on('error', reject);
     });
 };
-
-

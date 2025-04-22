@@ -50,8 +50,8 @@ export default function AgensiSummaryTableView({ filter }) {
                             <th className="px-6 py-3 text-left text-xs font-semibold text-blue-700 uppercase tracking-wider">Status Pukal</th>
                             <th className="px-6 py-3 text-left text-xs font-semibold text-blue-700 uppercase tracking-wider">ADID</th>
                             <th className="px-6 py-3 text-left text-xs font-semibold text-blue-700 uppercase tracking-wider">Bil Akaun</th>
-                            <th className="px-6 py-3 text-left text-xs font-semibold text-blue-700 uppercase tracking-wider">TTL O/S AMT</th>
-                            <th className="px-6 py-3 text-left text-xs font-semibold text-blue-700 uppercase tracking-wider">Total Unpaid</th>
+                            <th className="px-6 py-3 text-left text-xs font-semibold text-blue-700 uppercase tracking-wider">TTL O/S AMT(RM)</th>
+                            <th className="px-6 py-3 text-left text-xs font-semibold text-blue-700 uppercase tracking-wider">Total Unpaid(RM)</th>
                         </tr>
                     </thead>
                     <tbody className="bg-white divide-y divide-blue-100">

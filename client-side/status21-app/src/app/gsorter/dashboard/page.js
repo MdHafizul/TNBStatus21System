@@ -6,6 +6,7 @@ import FilterDropdown from '@/components/GovSorter/filterDropdown';
 import SummaryTableView from '@/components/GovSorter/summaryTableView';
 import AgensiSummaryTableView from '@/components/GovSorter/agensiSummaryTableView';
 import DetailedTableView from '@/components/GovSorter/detailedTableView';
+import GenerateReportButton from '@/components/reportButton';
 
 export default function GSorterDashboard() {
     const [filter, setFilter] = useState({
@@ -22,6 +23,9 @@ export default function GSorterDashboard() {
             <main className="container mx-auto px-4 py-6">
                 <h1 className="text-2xl font-bold mb-1 text-blue-800">GSorter - Dashboard</h1>
                 <p className="text-gray-600 mb-6">View and analyze data for the GSorter system.</p>
+                
+                {/* Generate Report Button */}
+                <GenerateReportButton filter={filter} setFilter={setFilter} type="govsorter" />
 
                 {/* Agensi Summary Table */}
                 <h2 className="text-xl font-semibold mb-2 text-blue-700"> Summary Table</h2>

@@ -57,7 +57,7 @@ export default function SummaryTableView() {
                                     Bil Akaun
                                 </th>
                                 <th className="px-6 py-3 text-left text-xs font-semibold text-blue-700 uppercase tracking-wider">
-                                    Jumlah Tunggakan
+                                    Jumlah Tunggakan (RM)
                                 </th>
                             </tr>
                             <tr></tr>

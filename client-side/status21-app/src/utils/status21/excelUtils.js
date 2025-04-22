@@ -2,7 +2,7 @@ import ExcelJS from 'exceljs';
 import { toPng } from 'html-to-image';
 
 
-export async function generateExcelReport(filter, setFilter) {
+export async function generateStatus21Report(filter, setFilter) {
     try {
 
         if (!filter) {
@@ -191,7 +191,7 @@ export async function generateExcelReport(filter, setFilter) {
 
             // Fetch data for this filter type
             updateProgress(`Fetching ${filterName} data...`);
-            const response = await fetch("http://localhost:3000/api/process-file", {
+            const response = await fetch("http://localhost:3000/api/v2/status21/process-file", {
                 method: "GET",
                 headers: {
                     "x-data-type": filterValue,
@@ -209,7 +209,7 @@ export async function generateExcelReport(filter, setFilter) {
                 }
             });
 
-            // Transform data for Excel with Malay column headers
+            // Transform data for Excel with column headers
             const tableData = Object.entries(data.BACount).map(([key, value]) => ({
                 "Kod Kwsn": key,
                 "Nama Kawasan": value["Business Area Name"],
