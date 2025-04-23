@@ -27,7 +27,7 @@ export default function Upload() {
     formData.append('uploadDate', selectedDate.toISOString());
 
     try {
-      const response = await fetch('http://localhost:3000/api/upload', {
+      const response = await fetch('http://localhost:3000/api/v2/govSorter/upload', {
         method: 'POST',
         body: formData,
       });
@@ -79,7 +79,7 @@ export default function Upload() {
 
   const handleSnackbarClick = () => {
     if (snackbar.type === 'success') {
-      router.push('/dashboard');
+      router.push('/gsoter/dashboard');
     }
   };
 
@@ -99,7 +99,7 @@ export default function Upload() {
                 Your file has been uploaded and processed successfully.
               </p>
               <button
-                onClick={() => router.push('/dashboard')}
+                onClick={() => router.push('gsorter/dashboard')}
                 className="inline-flex items-center px-6 py-3 border border-transparent text-sm font-medium 
                 rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
               >
@@ -109,21 +109,6 @@ export default function Upload() {
           ) : (
             // Upload Section UI
             <>
-              {/* Date Picker
-              <div className="mb-4">
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Select Upload Date
-                </label>
-                <input
-                  type="date"
-                  value={selectedDate.toISOString().split('T')[0]}
-                  onChange={(e) => setSelectedDate(new Date(e.target.value))}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm 
-                             focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  disabled={isUploading}
-                />
-              </div> */}
-
               {/* File Upload Area */}
               <div
                 {...getRootProps()}

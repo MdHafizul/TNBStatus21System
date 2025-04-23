@@ -1,12 +1,13 @@
 const fs = require('fs');
 const fileProcessor = require('../services/fileProcessor');
+const dataProcessor = require('../services/Status21/dataProcessor');
 const NodeCache = require('node-cache');
 const ErrorResponse = require('../utils/errorResponse');
 const cache = require('../utils/cache');
 
 // DESC: Upload the file and convert it to JSON
 // ACCESS: Public
-// ENDPOINT: /api/upload
+// @route POST /api/v2/status21/upload
 // METHOD: POST
 // REQUEST: File
 // RESPONSE: JSON
@@ -16,7 +17,7 @@ exports.uploadFile = async (req, res) => {
             return res.status(400).json({ error: { message: 'No file uploaded.' } });
         }
 
-        const uploadDate = req.uploadDate; 
+        const uploadDate = req.uploadDate;
         console.time('File Processing Time');
 
         const result = await fileProcessor.uploadFile(req.file.path);
@@ -25,30 +26,34 @@ exports.uploadFile = async (req, res) => {
         await fs.promises.unlink(req.file.path);
 
         // Store the result and selected date in cache
-        cache.set('uploadedData', { ...result, selectedDate: uploadDate.toISOString() });
+        cache.set('status21Data', { ...result, selectedDate: uploadDate.toISOString() });
 
         // Clear any previously cached results when new data is uploaded
         cache.del('disconnected_results');
         cache.del('revisit_results');
         cache.del('belumrevisit_results');
 
-        console.timeEnd('File Processing Time');
-
-        res.json(result);
-    } catch (error) {
-        console.error('[ERROR] uploadFile:', error.message);
-        res.status(500).json({ error: { message: `Error processing file: ${error.message}` } });
+        return res.status(200).json({
+            success: true,
+            message: 'File uploaded and processed successfully',
+            data: result
+        });
+    } catch (error){
+        return res.status(500).json({
+            success: false,
+            message: 'Server Error',
+            error: error.message
+        });
     }
 };
 
 
-// DESC: Retrieve the days and category for  revisit ,belum revisit and disconnect dates
-// ACCESS: Public
-// ENDPOINT: /api/days-file
-// METHOD: GET
+// @DESC: Retrieve the days and category for  revisit ,belum revisit and disconnect dates
+// @route GET /api/v2/status21/daysAndCategory
+// @ACCESS: Public
 exports.daysAndCategory = (req, res, next) => {
     try {
-        const uploadedData = cache.get('uploadedData');
+        const uploadedData = cache.get('status21Data');
 
         if (!uploadedData) {
             throw new ErrorResponse('No data available.', 400, 'NO_DATA');
@@ -77,18 +82,18 @@ exports.daysAndCategory = (req, res, next) => {
 
         if (type === 'belumrevisit') {
             // Calculate "disconnected" and "revisit" counts
-            const disconnectedData = fileProcessor.calculateDaysAndCategory(data, 'Disconnected Date', 'disconnected');
+            const disconnectedData = dataProcessor.calculateDaysAndCategory(data, 'Disconnected Date', 'disconnected');
 
             // For revisit, filter data first but still use Disconnected Date for categorizing
-            const revisitData = fileProcessor.calculateDaysAndCategory(
+            const revisitData = dataProcessor.calculateDaysAndCategory(
                 data.filter(row => row['Latest Revisit Date']),
                 'Disconnected Date',
                 'revisit'
             );
 
             // Sort by Business Area for both datasets
-            const disconnectedBACount = fileProcessor.sortByBusinessArea(disconnectedData);
-            const revisitBACount = fileProcessor.sortByBusinessArea(revisitData);
+            const disconnectedBACount = dataProcessor.sortByBusinessArea(disconnectedData);
+            const revisitBACount = dataProcessor.sortByBusinessArea(revisitData);
 
             // Calculate "belumrevisit" by subtracting revisit counts from disconnected counts
             const belumRevisitBACount = {};
@@ -119,7 +124,7 @@ exports.daysAndCategory = (req, res, next) => {
         if (type === 'revisit') {
             // Filter to only include rows with revisit dates, but categorize by Disconnected Date
             const filteredData = data.filter(row => row['Latest Revisit Date']);
-            const daysProcessedAndCategory = fileProcessor.calculateDaysAndCategory(filteredData, 'Disconnected Date', type);
+            const daysProcessedAndCategory = dataProcessor.calculateDaysAndCategory(filteredData, 'Disconnected Date', type);
 
             result = {
                 type,
@@ -127,7 +132,7 @@ exports.daysAndCategory = (req, res, next) => {
             };
         } else {
             // For disconnected, process normally using Disconnected Date
-            const daysProcessedAndCategory = fileProcessor.calculateDaysAndCategory(data, 'Disconnected Date', type);
+            const daysProcessedAndCategory = dataProcessor.calculateDaysAndCategory(data, 'Disconnected Date', type);
 
             result = {
                 type,
@@ -145,13 +150,12 @@ exports.daysAndCategory = (req, res, next) => {
 };
 
 
-// DESC: Process the uploaded file and return the number of days and category and sorted by BA
-// ACCESS: Public
-// ENDPOINT: /api/process-file
-// METHOD: GET
+// @DESC: Process the uploaded file and return the number of days and category and sorted by BA
+// @route GET api/v2/status21/process-file
+// @ACCESS: Public
 exports.processFile = (req, res, next) => {
     try {
-        const uploadedData = cache.get('uploadedData');
+        const uploadedData = cache.get('status21Data');
 
         if (!uploadedData) {
             throw new ErrorResponse('No data available.', 400, 'NO_DATA');
@@ -180,17 +184,17 @@ exports.processFile = (req, res, next) => {
         // Process data based on type and cache the results
         if (type === 'belumrevisit') {
             // Calculate all disconnected accounts
-            const disconnectedData = fileProcessor.calculateDaysAndCategory(data, 'Disconnected Date', 'disconnected');
+            const disconnectedData = dataProcessor.calculateDaysAndCategory(data, 'Disconnected Date', 'disconnected');
 
             // Calculate accounts that have been revisited
-            const revisitData = fileProcessor.calculateDaysAndCategory(
+            const revisitData = dataProcessor.calculateDaysAndCategory(
                 data.filter(row => row['Latest Revisit Date']),
                 'Disconnected Date',
                 'revisit'
             );
 
-            const disconnectedBACount = fileProcessor.sortByBusinessArea(disconnectedData);
-            const revisitBACount = fileProcessor.sortByBusinessArea(revisitData);
+            const disconnectedBACount = dataProcessor.sortByBusinessArea(disconnectedData);
+            const revisitBACount = dataProcessor.sortByBusinessArea(revisitData);
 
             // Calculate belum revisit by subtracting revisited accounts from all disconnected accounts
             const belumRevisitBACount = {};
@@ -232,8 +236,8 @@ exports.processFile = (req, res, next) => {
         } else if (type === 'revisit') {
             // Filter for rows with revisit dates but categorize using disconnected date
             const filteredData = data.filter(row => row['Latest Revisit Date']);
-            const daysProcessedAndCategory = fileProcessor.calculateDaysAndCategory(filteredData, 'Disconnected Date', type);
-            const areaSorted = fileProcessor.sortByBusinessArea(daysProcessedAndCategory);
+            const daysProcessedAndCategory = dataProcessor.calculateDaysAndCategory(filteredData, 'Disconnected Date', type);
+            const areaSorted = dataProcessor.sortByBusinessArea(daysProcessedAndCategory);
 
             result = {
                 type,
@@ -241,8 +245,8 @@ exports.processFile = (req, res, next) => {
             };
         } else {
             // For disconnected, continue using the same approach
-            const daysProcessedAndCategory = fileProcessor.calculateDaysAndCategory(data, 'Disconnected Date', type);
-            const areaSorted = fileProcessor.sortByBusinessArea(daysProcessedAndCategory);
+            const daysProcessedAndCategory = dataProcessor.calculateDaysAndCategory(data, 'Disconnected Date', type);
+            const areaSorted = dataProcessor.sortByBusinessArea(daysProcessedAndCategory);
 
             result = {
                 type,
