@@ -1,6 +1,6 @@
 services:
   backend:
-    image: hapejoy/status21-server:v2.0
+    image: hapejoy/status21-server:v2.1
     build:
       context: ./server-side
       dockerfile: Dockerfile
@@ -13,7 +13,7 @@ services:
     restart: always
 
   frontend:
-    image: hapejoy/status21-client:v2.3 # Updated version
+    image: hapejoy/status21-client:v2.4 # Updated version
     build:
       context: ./client-side/status21-app
       dockerfile: Dockerfile
