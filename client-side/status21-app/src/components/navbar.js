@@ -9,6 +9,7 @@ export default function Navbar() {
   const initialSystem =
     pathname.startsWith('/gsorter') ? 'gsorter'
       : pathname.startsWith('/status21') ? 'status21'
+        : pathname.startsWith('/statusLPC') ? 'statusLPC'
         : null;
   const [selectedSystem, setSelectedSystem] = useState(initialSystem);
 
@@ -41,6 +42,8 @@ export default function Navbar() {
                 ? 'Status 21'
                 : selectedSystem === 'gsorter'
                   ? 'GSorter'
+                    : selectedSystem === 'statusLPC'
+                      ? 'StatusLPC'
                   : 'Systems'}
               <svg
                 className="inline ml-1 w-4 h-4"
@@ -72,6 +75,14 @@ export default function Navbar() {
                   onClick={() => handleSystemSelect('gsorter')}
                 >
                   GSorter
+                </Link>
+                <Link
+                  href="/statusLPC"
+                  className={`block px-4 py-2 text-gray-700 hover:bg-gray-100 ${selectedSystem === 'statusLPC' ? 'font-semibold bg-gray-100' : ''
+                    }`}
+                  onClick={() => handleSystemSelect('statusLPC')}
+                  >
+                  StatusLPC
                 </Link>
               </div>
             )}
@@ -106,6 +117,24 @@ export default function Navbar() {
                 Upload
               </Link>
               <Link href="/gsorter/dashboard" className="flex items-center text-gray-600 hover:text-gray-900">
+                {/* Dashboard Icon */}
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2m0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                </svg>
+                Dashboard
+              </Link>
+            </>
+          )}
+          {selectedSystem === 'statusLPC' && (
+            <>
+              <Link href="/statusLPC" className="flex items-center text-gray-600 hover:text-gray-900">
+                {/* Upload Icon */}
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
+                </svg>
+                Upload
+              </Link>
+              <Link href="/statusLPC/dashboard" className="flex items-center text-gray-600 hover:text-gray-900">
                 {/* Dashboard Icon */}
                 <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2m0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
