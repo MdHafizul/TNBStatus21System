@@ -1,6 +1,5 @@
 'use client'
 
-import Navbar from "../navbar"
 import { useCallback, useEffect, useState } from "react"
 import Snackbar from "../snackBar"
 

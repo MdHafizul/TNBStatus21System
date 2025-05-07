@@ -4,6 +4,7 @@ const express = require('express');
 //routes
 const status21Routes = require('./routes/status21Routes');
 const govSorterRoutes = require('./routes/govSorterRoutes');
+const statusLPCRoutes = require('./routes/statusLPCRoutes');
 
 //middleware
 const errorHandler = require('./middleware/errorHandler');
@@ -38,6 +39,7 @@ app.get('/', (req, res) => {
 //Routes
 app.use('/api/v2/status21', status21Routes);
 app.use('/api/v2/govSorter', govSorterRoutes);
+app.use('/api/v2/statusLPC', statusLPCRoutes);
 
 //Error handler middleware
 app.use(errorHandler);

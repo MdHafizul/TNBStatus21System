@@ -23,11 +23,9 @@ export default function Upload() {
 
     const formData = new FormData();
     formData.append('file', file);
-    formData.append('uploadDate', selectedDate.toISOString());
 
-    //TODO : Change to the correct API URL
     try {
-      const response = await fetch('http://localhost:3000/api/v2/govSorter/upload', {
+      const response = await fetch('http://localhost:3000/api/v2/statusLPC/upload', {
         method: 'POST',
         body: formData,
       });
