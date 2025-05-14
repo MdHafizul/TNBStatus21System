@@ -48,6 +48,7 @@ export default function Upload() {
 
       setSnackbar({ message: 'File uploaded and processed successfully!', type: 'success' });
       setIsUploaded(true);
+      localStorage.setItem('status21_selectedDate', selectedDate.toISOString());
     } catch (error) {
       console.error('Error uploading file:', error);
       setSnackbar({ message: error.message, type: 'error' });
@@ -88,7 +89,7 @@ export default function Upload() {
       <Navbar />
       <div className="container mx-auto px-4 py-6">
         <h1 className="text-2xl font-bold mb-1">Welcome to Status21 System</h1>
-        <p className="text-gray-600 mb-6">Upload Excel files containing disconnected accounts or debts data.</p>
+        <p className="text-gray-600 mb-6">Upload Excel files containing overall accounts data.</p>
 
         <div className="bg-white rounded-lg border border-gray-200 p-6 mb-6 shadow-sm">
           {isUploaded ? (

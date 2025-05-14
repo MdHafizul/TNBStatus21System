@@ -87,7 +87,7 @@ export default function Upload() {
     <>
       <Navbar />
       <div className="container mx-auto px-4 py-6">
-        <h1 className="text-2xl font-bold mb-1 ">Welcome to GSorter System</h1>
+        <h1 className="text-2xl font-bold mb-1 ">Welcome to GovSorter System</h1>
         <p className="text-gray-600 mb-6">Upload Excel files containing gov data.</p>
 
         <div className="bg-white rounded-lg border border-gray-200 p-6 mb-6 shadow-sm">

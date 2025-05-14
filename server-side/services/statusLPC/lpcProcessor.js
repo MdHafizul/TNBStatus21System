@@ -167,7 +167,7 @@ exports.sortedTable = (data, filter = 'ALL') => {
     const result = Object.values(businessAreas).sort((a, b) =>
         b.percentCollection - a.percentCollection
     );
-    
+
     // Add JUMLAH row (total)
     if (result.length > 0) {
         const total = {
@@ -201,15 +201,51 @@ exports.sortedTable = (data, filter = 'ALL') => {
 };
 
 //Genereic function to return for detailed table
-exports.detailedTable = (data, filter = 'ALL') => {
+exports.detailedTable = (data, teamFilter = 'ALL', businessAreaFilter = 'ALL') => {
     if (!Array.isArray(data) || data.length === 0) {
         return [];
     }
 
-    // Filter data by category (Team) if needed
-    const filteredData = filter === 'ALL'
-        ? data
-        : data.filter(row => row['Team'] === filter);
+    // If both filters are 'ALL', return all data
+    if (teamFilter === 'ALL' && businessAreaFilter === 'ALL') {
+        return data;
+    }
 
-    return filteredData;
-}
+    const dataMap = new Map();
+
+    data.forEach((row) => {
+        const team = row['Team'] || 'ALL';
+        const businessArea = row['Buss Area'] || 'ALL';
+        const key = `${team}-${businessArea}`;
+
+        if (!dataMap.has(key)) {
+            dataMap.set(key, []);
+        }
+        dataMap.get(key).push(row);
+    });
+
+    // If only one filter is 'ALL', match the other filter
+    if (teamFilter === 'ALL') {
+        const filteredData = [];
+        dataMap.forEach((rows, key) => {
+            if (key.endsWith(`-${businessAreaFilter}`)) {
+                filteredData.push(...rows);
+            }
+        });
+        return filteredData;
+    }
+
+    if (businessAreaFilter === 'ALL') {
+        const filteredData = [];
+        dataMap.forEach((rows, key) => {
+            if (key.startsWith(`${teamFilter}-`)) {
+                filteredData.push(...rows);
+            }
+        });
+        return filteredData;
+    }
+
+    // If both filters are specific, return the filtered data
+    const key = `${teamFilter}-${businessAreaFilter}`;
+    return dataMap.get(key) || [];
+};

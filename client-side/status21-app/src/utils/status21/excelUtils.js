@@ -1,13 +1,12 @@
 import ExcelJS from 'exceljs';
 import { toPng } from 'html-to-image';
 
-
-export async function generateStatus21Report(filter, setFilter) {
+export async function generateStatus21Report(filter, setFilter, selectedDate) {
     try {
 
         if (!filter) {
 
-            setFilter("Keseluruhan");
+            setFilter("Overall");
         }
         // Show loading indicator
         const loadingIndicator = document.createElement('div');
@@ -26,9 +25,9 @@ export async function generateStatus21Report(filter, setFilter) {
         };
 
         const filterTypes = {
-            "Disconnected": "disconnected",
-            "Revisit": "revisit",
-            "Belum Revisit": "belumrevisit"
+            "Overall": "disconnected",
+            "Revisited": "revisit",
+            "Pending Revisit": "belumrevisit"
         };
 
         // Create a new workbook using ExcelJS
@@ -203,29 +202,31 @@ export async function generateStatus21Report(filter, setFilter) {
             const worksheet = workbook.addWorksheet(`${filterName}`, {
                 properties: {
                     tabColor: {
-                        argb: filterName === 'Disconnected' ? 'F44336' :
-                            filterName === 'Revisit' ? '4CAF50' : '2196F3'
+                        argb: filterName === 'Overall' ? 'F44336' :
+                            filterName === 'Revisited' ? '4CAF50' : '2196F3'
                     }
                 }
             });
 
             // Transform data for Excel with column headers
             const tableData = Object.entries(data.BACount).map(([key, value]) => ({
-                "Kod Kwsn": key,
-                "Nama Kawasan": value["Business Area Name"],
-                "BIL CA": value.total,
-                "> 2 years": value[">2Years"],
+                "Business Area": key,
+                "Station": value["Business Area Name"],
+                "No. Of CA": value.total,
+                "> 2 Years": value[">2Years"],
                 "< 2 Years": value["<2Years"],
-                "< 12 month": value["<12Months"],
-                "< 6 month": value["<6Months"],
-                "< 3 months": value["<3Months"],
-                "0-1 month": value["0-1Months"],
+                "< 12 Months": value["<12Months"],
+                "< 6 Months": value["<6Months"],
+                "< 3 Months": value["<3Months"],
+                "0-1 Month": value["0-1Months"],
             }));
 
             // Add title
             worksheet.mergeCells('A1:I1');
             const titleCell = worksheet.getCell('A1');
-            titleCell.value = `${filterName} Accounts Report`;
+            titleCell.value = filterName === "Overall"
+                ? `Status 21 Report - ${filterName} Performance`
+                : `Status 21 Report - ${filterName}`;
             titleCell.font = {
                 name: 'Calibri',
                 size: 16,
@@ -237,8 +238,10 @@ export async function generateStatus21Report(filter, setFilter) {
 
             // Add subtitle with date
             worksheet.mergeCells('A2:I2');
-            const subtitleCell = worksheet.getCell('A2');
-            subtitleCell.value = `Generated on ${new Date().toLocaleDateString()} at ${new Date().toLocaleTimeString()}`;
+            const subtitleCell = worksheet.getCell('A2'); 
+            const reportDate = selectedDate ? new Date(selectedDate) : new Date();
+            const formattedDate = `${reportDate.getDate().toString().padStart(2, '0')}/${(reportDate.getMonth() + 1).toString().padStart(2, '0')}/${reportDate.getFullYear()}`;
+            subtitleCell.value = `Reports Of ${formattedDate} `;
             subtitleCell.font = {
                 name: 'Calibri',
                 size: 10,
@@ -250,8 +253,8 @@ export async function generateStatus21Report(filter, setFilter) {
 
             // Define columns with headers
             const headers = [
-                'Kod Kwsn', 'Nama Kawasan', 'BIL CA', '> 2 years',
-                '< 2 Years', '< 12 month', '< 6 month', '< 3 months', '0-1 month'
+                'Business Area', 'Station', 'No. Of CA', '> 2 Years',
+                '< 2 Years', '< 12 Months', '< 6 Months', '< 3 Months', '0-1 Month'
             ];
 
             // Add header row at row 3
@@ -272,7 +275,7 @@ export async function generateStatus21Report(filter, setFilter) {
                 };
                 cell.alignment = {
                     vertical: 'middle',
-                    horizontal: index === 1 ? 'left' : 'center'
+                    horizontal: 'center'
                 };
                 cell.border = {
                     top: { style: 'thin', color: { argb: themeColors.border } },
@@ -286,9 +289,9 @@ export async function generateStatus21Report(filter, setFilter) {
 
             // Set column widths
             worksheet.columns = [
-                { key: 'kodKwsn', width: 18 },
-                { key: 'namaKawasan', width: 32 },
-                { key: 'bilCa', width: 14 },
+                { key: 'BusinessArea', width: 18 },
+                { key: 'Station', width: 32 },
+                { key: 'No.OfCa', width: 14 },
                 { key: 'gt2Years', width: 14 },
                 { key: 'lt2Years', width: 14 },
                 { key: 'lt12Months', width: 14 },
@@ -300,15 +303,15 @@ export async function generateStatus21Report(filter, setFilter) {
             // Add data rows starting from row 4
             tableData.forEach((row, rowIndex) => {
                 const dataRow = worksheet.getRow(rowIndex + 4);
-                dataRow.getCell(1).value = row["Kod Kwsn"];
-                dataRow.getCell(2).value = row["Nama Kawasan"];
-                dataRow.getCell(3).value = row["BIL CA"];
-                dataRow.getCell(4).value = row["> 2 years"];
+                dataRow.getCell(1).value = row["Business Area"];
+                dataRow.getCell(2).value = row["Station"];
+                dataRow.getCell(3).value = row["No. Of CA"];
+                dataRow.getCell(4).value = row["> 2 Years"];
                 dataRow.getCell(5).value = row["< 2 Years"];
-                dataRow.getCell(6).value = row["< 12 month"];
-                dataRow.getCell(7).value = row["< 6 month"];
-                dataRow.getCell(8).value = row["< 3 months"];
-                dataRow.getCell(9).value = row["0-1 month"];
+                dataRow.getCell(6).value = row["< 12 Months"];
+                dataRow.getCell(7).value = row["< 6 Months"];
+                dataRow.getCell(8).value = row["< 3 Months"];
+                dataRow.getCell(9).value = row["0-1 Month"];
 
                 // Apply row styling
                 dataRow.eachCell((cell, colNumber) => {
@@ -335,15 +338,15 @@ export async function generateStatus21Report(filter, setFilter) {
             const totalsRow = worksheet.getRow(totalsRowIndex);
 
             // Add totals row
-            totalsRow.getCell(1).value = 'TOTAL';
+            totalsRow.getCell(1).value = 'Total';
             totalsRow.getCell(2).value = '';
-            totalsRow.getCell(3).value = tableData.reduce((sum, row) => sum + row["BIL CA"], 0);
-            totalsRow.getCell(4).value = tableData.reduce((sum, row) => sum + row["> 2 years"], 0);
+            totalsRow.getCell(3).value = tableData.reduce((sum, row) => sum + row["No. Of CA"], 0);
+            totalsRow.getCell(4).value = tableData.reduce((sum, row) => sum + row["> 2 Years"], 0);
             totalsRow.getCell(5).value = tableData.reduce((sum, row) => sum + row["< 2 Years"], 0);
-            totalsRow.getCell(6).value = tableData.reduce((sum, row) => sum + row["< 12 month"], 0);
-            totalsRow.getCell(7).value = tableData.reduce((sum, row) => sum + row["< 6 month"], 0);
-            totalsRow.getCell(8).value = tableData.reduce((sum, row) => sum + row["< 3 months"], 0);
-            totalsRow.getCell(9).value = tableData.reduce((sum, row) => sum + row["0-1 month"], 0);
+            totalsRow.getCell(6).value = tableData.reduce((sum, row) => sum + row["< 12 Months"], 0);
+            totalsRow.getCell(7).value = tableData.reduce((sum, row) => sum + row["< 6 Months"], 0);
+            totalsRow.getCell(8).value = tableData.reduce((sum, row) => sum + row["< 3 Months"], 0);
+            totalsRow.getCell(9).value = tableData.reduce((sum, row) => sum + row["0-1 Month"], 0);
 
             // Style the totals row
             totalsRow.eachCell((cell, colNumber) => {
@@ -387,7 +390,9 @@ export async function generateStatus21Report(filter, setFilter) {
                 const chartTitleRow = worksheet.lastRow.number + 1;
                 worksheet.mergeCells(`A${chartTitleRow}:I${chartTitleRow}`);
                 const chartTitle = worksheet.getCell(`A${chartTitleRow}`);
-                chartTitle.value = `${filterName} Accounts by Business Area`;
+                chartTitle.value = filterName === "Overall"
+                    ? `${filterName} Performance by Business Area`
+                    : `${filterName}  by Business Area`;
                 chartTitle.font = {
                     name: 'Calibri',
                     size: 14,
@@ -462,7 +467,7 @@ export async function generateStatus21Report(filter, setFilter) {
         }
 
         // Set first sheet as active when opening
-        workbook.getWorksheet('Disconnected').state = 'visible';
+        workbook.getWorksheet('Overall').state = 'visible';
         workbook.views = [
             { activeTab: 0 }
         ];
@@ -478,13 +483,13 @@ export async function generateStatus21Report(filter, setFilter) {
         link.click();
 
         // Restore original filter if needed
-        if (filter !== 'Keseluruhan') {
-            setFilter('Keseluruhan');
+        if (filter !== 'Overall') {
+            setFilter('Overall');
 
             // Find the filter dropdown and change its value back
             const filterDropdown = document.querySelector('select[name="filter"]');
             if (filterDropdown) {
-                filterDropdown.value = 'Keseluruhan';
+                filterDropdown.value = 'Overall';
                 filterDropdown.dispatchEvent(new Event('change', { bubbles: true }));
             }
         }

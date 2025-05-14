@@ -83,7 +83,7 @@ export default function SummaryCards() {
           <p className="text-3xl font-bold">{isLoading ? "Loading..." : totals.revisited}</p>
         </div>
         <div className="bg-white rounded-lg border border-gray-200 p-6">
-          <h2 className="text-sm font-medium text-gray-600 mb-2">Not Revisited</h2>
+          <h2 className="text-sm font-medium text-gray-600 mb-2">Pending Revisited</h2>
           <p className="text-3xl font-bold">{isLoading ? "Loading..." : totals.notRevisited}</p>
         </div>
       </div>

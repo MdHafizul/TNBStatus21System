@@ -4,7 +4,7 @@ import { useState, useRef, useEffect } from 'react';
 
 export default function FilterDropdown({ onFilterChange }) {
     const [isOpen, setIsOpen] = useState(false);
-    const [selectedOption, setSelectedOption] = useState('Keseluruhan');
+    const [selectedOption, setSelectedOption] = useState('Overall');
     const dropdownRef = useRef(null);
 
     useEffect(() => {
@@ -53,7 +53,7 @@ export default function FilterDropdown({ onFilterChange }) {
                 {isOpen && (
                     <div className="absolute z-10 mt-2 w-40 bg-white shadow-lg ring-1 ring-black ring-opacity-5 rounded-md">
                         <div className="py-1" role="menu" aria-orientation="vertical">
-                            {['Keseluruhan', 'Revisit', 'Belum Revisit'].map((option) => (
+                            {['Overall', 'Revisited', 'Pending Revisit'].map((option) => (
                                 <button
                                     key={option}
                                     className="flex w-full items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:text-gray-900"

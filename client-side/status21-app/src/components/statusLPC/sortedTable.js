@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Snackbar from "../snackBar";
+const sortedTableCache = {};
 
 export default function SortedTable({ filter }) {
     const [isLoading, setIsLoading] = useState(false);
@@ -9,9 +10,19 @@ export default function SortedTable({ filter }) {
     const [totalRow, setTotalRow] = useState(null);
     const [snackbar, setSnackbar] = useState({ message: "", type: "" });
 
+
     useEffect(() => {
         async function fetchSortedData() {
             setIsLoading(true);
+
+            // Check cache first
+            if (sortedTableCache[filter]) {
+                setData(sortedTableCache[filter].data);
+                setTotalRow(sortedTableCache[filter].totalRow);
+                setIsLoading(false);
+                return;
+            }
+
             try {
                 const response = await fetch("http://localhost:3000/api/v2/statusLPC/sortedTable", {
                     method: "POST",
@@ -22,11 +33,13 @@ export default function SortedTable({ filter }) {
                     throw new Error(`Failed to fetch sorted data: ${response.statusText}`);
                 }
                 const result = await response.json();
-                
-                // Extract total row and regular data
+
                 const regularData = (result.data || []).filter(row => row.businessArea !== 'JUMLAH');
                 const total = (result.data || []).find(row => row.businessArea === 'JUMLAH');
-                
+
+                // Store in cache
+                sortedTableCache[filter] = { data: regularData, totalRow: total };
+
                 setData(regularData);
                 setTotalRow(total);
             } catch (error) {
@@ -38,7 +51,7 @@ export default function SortedTable({ filter }) {
                 setIsLoading(false);
             }
         }
-        
+
         fetchSortedData();
     }, [filter]);
 
@@ -97,7 +110,7 @@ export default function SortedTable({ filter }) {
                                         </td>
                                     </tr>
                                 ))}
-                                
+
                                 {totalRow && (
                                     <tr className="bg-purple-100 font-bold">
                                         <td className="px-6 py-4 whitespace-nowrap">{totalRow.businessArea}</td>

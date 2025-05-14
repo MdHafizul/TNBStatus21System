@@ -140,10 +140,10 @@ exports.processAndFilterDetailedTable = async (req, res, next) => {
         const data = uploadedData.Sheet1 || [];
 
         // Get the filter from the request body
-        const { filter = 'ALL' } = req.body;
+        const { teamFilter = 'ALL' , businessAreaFilter = 'ALL'} = req.body;
 
         // Process the data with the filter
-        const processedData = lpcProcessor.detailedTable(data, filter);
+        const processedData = lpcProcessor.detailedTable(data, teamFilter, businessAreaFilter);
 
         // Send the processed summary data
         res.status(200).json({

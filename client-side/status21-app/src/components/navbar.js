@@ -41,7 +41,7 @@ export default function Navbar() {
               {selectedSystem === 'status21'
                 ? 'Status 21'
                 : selectedSystem === 'gsorter'
-                  ? 'GSorter'
+                  ? 'GovSorter'
                     : selectedSystem === 'statusLPC'
                       ? 'StatusLPC'
                   : 'Systems'}
@@ -74,7 +74,7 @@ export default function Navbar() {
                     }`}
                   onClick={() => handleSystemSelect('gsorter')}
                 >
-                  GSorter
+                  GovSorter
                 </Link>
                 <Link
                   href="/statusLPC"
