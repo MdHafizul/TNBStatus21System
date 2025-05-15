@@ -21,8 +21,8 @@ export default function GSorterDashboard() {
         <>
             <Navbar />
             <main className="container mx-auto px-4 py-6">
-                <h1 className="text-2xl font-bold mb-1 text-blue-800">GSorter - Dashboard</h1>
-                <p className="text-gray-600 mb-6">View and analyze data for the GSorter system.</p>
+                <h1 className="text-2xl font-bold mb-1 text-blue-800">GovSorter - Dashboard</h1>
+                <p className="text-gray-600 mb-6">View and analyze data for the GovSorter system.</p>
                 
                 {/* Generate Report Button */}
                 <GenerateReportButton filter={filter} setFilter={setFilter} type="govsorter" />

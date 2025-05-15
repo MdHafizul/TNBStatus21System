@@ -58,12 +58,12 @@ export default function ChartView({ filter }) {
     setIsLoading(true);
     try {
       const typeMap = {
-        Keseluruhan: "disconnected",
-        Revisit: "revisit",
-        "Belum Revisit": "belumrevisit",
+        Overall: "disconnected",
+        Revisited: "revisit",
+        "Pending Revisit": "belumrevisit",
       };
 
-      const dataType = typeMap[filter] || "disconnected"; 
+      const dataType = typeMap[filter] || "disconnected";
 
       const response = await fetch(`http://localhost:3000/api/v2/status21/process-file`, {
         method: "GET",
@@ -74,7 +74,7 @@ export default function ChartView({ filter }) {
 
       if (!response.ok) {
         throw new Error(`Failed to fetch table data: ${response.statusText}`);
-    }
+      }
 
       const result = await response.json();
       transformDataForChart(result.BACount);
@@ -111,7 +111,10 @@ export default function ChartView({ filter }) {
       },
       title: {
         display: true,
-        text: `Status 21 - ${filter}`,
+        text:
+          filter === "Overall"
+            ? `Status 21 Report - ${filter} Performance`
+            : `Status 21 Report - ${filter}`,
         font: {
           weight: "bold",
           size: 16,

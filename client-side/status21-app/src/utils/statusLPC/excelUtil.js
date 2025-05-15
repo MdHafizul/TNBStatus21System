@@ -1,634 +1,361 @@
-'use client'
-
 import ExcelJS from 'exceljs';
+import html2canvas from 'html2canvas';
 import { toPng } from 'html-to-image';
 
+/**
+ * Generate StatusLPC Excel Report with 4 sheets:
+ * 1. SUMMARY: Dashboard summary cards image + summary table
+ * 2. PRIME: Sorted table + detailed table (Prime only)
+ * 3. CURRENT: Sorted table + detailed table (Current only)
+ * 4. DEBT: Sorted table + detailed table (Debt only)
+ */
 export async function generateStatusLPCReport() {
-    try {
-        // Show loading indicator
-        const loadingIndicator = document.createElement('div');
-        loadingIndicator.className = 'fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50';
-        loadingIndicator.innerHTML = `
-            <div class="bg-white p-6 rounded-lg shadow-lg text-center">
-                <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-500 mx-auto mb-4"></div>
-                <p class="text-lg font-semibold">Generating Excel Report...</p>
-                <p class="text-sm text-gray-500" id="progress-text">Fetching data...</p>
-            </div>
-        `;
-        document.body.appendChild(loadingIndicator);
+    // Show loading indicator
+    const loadingIndicator = document.createElement('div');
+    loadingIndicator.className = 'fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50';
+    loadingIndicator.innerHTML = `
+        <div class="bg-white p-6 rounded-lg shadow-lg text-center">
+            <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-500 mx-auto mb-4"></div>
+            <p class="text-lg font-semibold">Generating Excel Report...</p>
+            <p class="text-sm text-gray-500" id="progress-text-lpc">Fetching data...</p>
+        </div>
+    `;
+    document.body.appendChild(loadingIndicator);
 
-        const updateProgress = (text) => {
-            document.getElementById('progress-text').textContent = text;
+    const updateProgress = (text) => {
+        const el = document.getElementById('progress-text-lpc');
+        if (el) el.textContent = text;
+    };
+
+    try {
+        updateProgress("Fetching summary dashboard data...");
+        // 1. Fetch summary dashboard data (summary cards)
+        const summaryCardsRes = await fetch('http://localhost:3000/api/v2/statusLPC/summaryCards');
+        if (!summaryCardsRes.ok) throw new Error('Failed to fetch summary dashboard data');
+        const summaryCards = (await summaryCardsRes.json()).data || {};
+
+        updateProgress("Fetching summary table data...");
+        // 2. Fetch summary table data
+        const summaryTableRes = await fetch('http://localhost:3000/api/v2/statusLPC/summaryTable');
+        if (!summaryTableRes.ok) throw new Error('Failed to fetch summary table data');
+        const summaryTableData = (await summaryTableRes.json()).data || [];
+
+        // Helper to fetch sorted and detailed table for a filter
+        const fetchSortedAndDetailed = async (filter) => {
+            updateProgress(`Fetching sorted table for ${filter}...`);
+            const sortedRes = await fetch('http://localhost:3000/api/v2/statusLPC/sortedTable', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ filter })
+            });
+            if (!sortedRes.ok) throw new Error(`Failed to fetch sorted table for ${filter}`);
+            const sortedData = (await sortedRes.json()).data || [];
+
+            updateProgress(`Fetching detailed table for ${filter}...`);
+            const detailedRes = await fetch('http://localhost:3000/api/v2/statusLPC/detailedTable', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ teamFilter: filter, businessAreaFilter: 'ALL' })
+            });
+            if (!detailedRes.ok) throw new Error(`Failed to fetch detailed table for ${filter}`);
+            const detailedData = (await detailedRes.json()).data || [];
+
+            return { sortedData, detailedData };
         };
 
-        // Create a new workbook using ExcelJS
+        // Fetch for PRIME, CURRENT, DEBT
+        const [prime, current, debt] = await Promise.all([
+            fetchSortedAndDetailed('PRIME'),
+            fetchSortedAndDetailed('CURRENT'),
+            fetchSortedAndDetailed('DEBT')
+        ]);
+
+        updateProgress("Capturing dashboard image...");
+        // 3. Capture summary dashboard as image using html-to-image (toPng)
+        let dashboardImageBase64 = null;
+        const dashboardContainer = document.querySelector('.bg-white.rounded-lg.border.border-gray-200.p-6.mb-6');
+        if (dashboardContainer) {
+            dashboardImageBase64 = await toPng(dashboardContainer, { cacheBust: true, backgroundColor: '#fff', pixelRatio: 2 });
+        }
+
+        updateProgress("Building Excel workbook...");
+
+        // ExcelJS workbook setup
         const workbook = new ExcelJS.Workbook();
         workbook.creator = 'StatusLPC System';
-        workbook.lastModifiedBy = 'StatusLPC System';
         workbook.created = new Date();
         workbook.modified = new Date();
 
-        // Set professional theme colors
-        const themeColors = {
-            primary: '753BBD',    // Purple
-            secondary: 'E9DFFF',  // Light purple
-            accent: 'F5F0FF',     // Very light purple
-            text: '333333',       // Dark gray
-            border: 'C4B0E6',     // Medium purple
-            chartColors: [
-                '9C27B0',  // Purple
-                '673AB7',  // Deep Purple
-                '3F51B5',  // Indigo
-                '2196F3',  // Blue
-                'BA68C8',  // Light Purple
-                'E1BEE7'   // Very Light Purple
-            ]
+        // Theme colors
+        const theme = {
+            summary: 'A084E8', // Purple
+            prime: 'FFB84C',   // Orange
+            current: '4FC3F7', // Blue
+            debt: 'F55050',    // Red
+            header: '6C3483',  // Dark purple
+            border: 'D1C4E9',
+            white: 'FFFFFF',
+            totalRow: 'E1BEE7', // Light purple for total rows
+            jumlahRow: 'FFF9C4', // Light yellow for jumlah/total rows
         };
 
-        // Format for date display
-        const dateFormat = new Intl.DateTimeFormat('ms-MY', {
-            day: '2-digit',
-            month: '2-digit',
-            year: 'numeric',
-            hour: '2-digit',
-            minute: '2-digit',
-            hour12: true
-        });
-
-        const currentDateTime = dateFormat.format(new Date());
-
-        // Define common styles
-        const headerStyle = {
-            font: { bold: true, color: { argb: 'FFFFFFFF' } },
-            fill: {
-                type: 'pattern',
-                pattern: 'solid',
-                fgColor: { argb: `FF${themeColors.primary}` }
-            },
-            alignment: { horizontal: 'center', vertical: 'middle' },
-            border: {
-                top: { style: 'thin' },
-                left: { style: 'thin' },
-                bottom: { style: 'thin' },
-                right: { style: 'thin' }
-            }
-        };
-
-        const titleStyle = {
-            font: { bold: true, size: 16, color: { argb: 'FF000000' } },
-            alignment: { horizontal: 'center' }
-        };
-
-        const subtitleStyle = {
-            font: { bold: true, size: 12, color: { argb: 'FF555555' } },
-            alignment: { horizontal: 'center' }
-        };
-
-        const totalRowStyle = {
-            font: { bold: true },
-            fill: {
-                type: 'pattern',
-                pattern: 'solid',
-                fgColor: { argb: `FF${themeColors.secondary}` }
-            },
-            alignment: { horizontal: 'center', vertical: 'middle' },
-            border: {
-                top: { style: 'thin' },
-                left: { style: 'thin' },
-                bottom: { style: 'double' },
-                right: { style: 'thin' }
-            }
-        };
-
-        const alternateRowStyle = {
-            fill: {
-                type: 'pattern',
-                pattern: 'solid',
-                fgColor: { argb: `FF${themeColors.accent}` }
-            },
-            alignment: { horizontal: 'center', vertical: 'middle' }
-        };
-
-        const defaultCellStyle = {
-            alignment: { horizontal: 'center', vertical: 'middle' }
-        };
-
-        // Chart capture function
-        const captureChartImage = async (selector) => {
-            updateProgress(`Capturing chart...`);
-
-            try {
-                // Find the chart element
-                const chartElement = document.querySelector(selector);
-                if (!chartElement) {
-                    console.error(`Chart element not found: ${selector}`);
-                    return null;
-                }
-
-                // Use toPng instead of html2canvas
-                const dataUrl = await toPng(chartElement, {
-                    quality: 0.95,
-                    pixelRatio: 2,
-                    backgroundColor: null,
-                    // Set a timeout to prevent infinite waiting
-                    timeout: 30000 // 30 seconds
+        // Helper: Auto fit columns based on data
+        function autoFitColumns(ws, dataRows, headerRow) {
+            const colWidths = headerRow.map((header, i) => {
+                let maxLen = header.toString().length;
+                dataRows.forEach(row => {
+                    const val = row[i] !== undefined && row[i] !== null ? row[i].toString() : '';
+                    if (val.length > maxLen) maxLen = val.length;
                 });
+                return maxLen + 2;
+            });
+            ws.columns.forEach((col, i) => {
+                col.width = colWidths[i] || 10;
+            });
+        }
 
-                // dataUrl is already what we need
-                return dataUrl;
-            } catch (error) {
-                console.error('Error capturing chart:', error);
-                return null;
-            }
-        };
+        // Helper: Add summary dashboard image to worksheet
+        async function addSummaryDashboardImage(ws, imageBase64, startRow = 1) {
+            if (!imageBase64) return;
+            const imageId = workbook.addImage({
+                base64: imageBase64,
+                extension: 'png'
+            });
+            ws.addImage(imageId, {
+                tl: { col: 0, row: Math.max(0, startRow) },
+                ext: { width: 700, height: 250 }
+            });
+        }
 
-        // Capture summary cards
-        const captureSummaryCards = async () => {
-            updateProgress('Capturing summary cards...');
+        // Helper: Add summary table to worksheet
+        function addSummaryTable(ws, data, startRow = ws.lastRow ? ws.lastRow.number + 2 : 10) {
+            // Merge 3 rows for the header
+            ws.mergeCells(`A${startRow}:F${startRow + 2}`);
+            const headerCell = ws.getCell(`A${startRow}`);
+            headerCell.value = "Summary Table";
+            headerCell.font = { bold: true, size: 14, color: { argb: theme.header } };
+            headerCell.alignment = { horizontal: 'center', vertical: 'middle' };
 
-            try {
-                const cardsElement = document.querySelector('.grid.grid-cols-1.gap-4');
-                if (!cardsElement) {
-                    console.error('Summary cards element not found');
-                    return null;
-                }
+            // Table headers (start after merged header)
+            const headers = [
+                'Kategori', 'Bil Akaun', 'Total Unpaid (RM)', 'Bil Akaun Buat Bayaran', 'Total Payment (RM)', 'Balance to Collect (RM)'
+            ];
+            const headerRow = ws.addRow(headers);
+            headerRow.eachCell(cell => {
+                cell.font = { bold: true, color: { argb: theme.white } };
+                cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: theme.header } };
+                cell.alignment = { horizontal: 'center' };
+            });
 
-                // Use toPng instead of html2canvas
-                const dataUrl = await toPng(cardsElement, {
-                    quality: 0.95,
-                    pixelRatio: 2,
-                    backgroundColor: null,
-                    // Set a timeout to prevent infinite waiting
-                    timeout: 30000 // 30 seconds
-                });
-
-                return dataUrl;
-            } catch (error) {
-                console.error('Error capturing summary cards:', error);
-                return null;
-            }
-        };
-
-        // Capture entire dashboard as one image
-        const captureDashboardImage = async () => {
-            updateProgress('Capturing dashboard overview...');
-
-            try {
-                // Try to find a container that has all elements
-                const dashboardElement = document.querySelector('.dashboard-container'); 
-                if (!dashboardElement) {
-                    console.warn('Dashboard container not found, falling back to individual captures');
-                    return null;
-                }
-
-                const dataUrl = await toPng(dashboardElement, {
-                    quality: 0.95,
-                    pixelRatio: 2,
-                    backgroundColor: '#ffffff',
-                    timeout: 30000 // 30 seconds
-                });
-
-                return dataUrl;
-            } catch (error) {
-                console.error('Error capturing dashboard:', error);
-                return null;
-            }
-        };
-
-        // Create main worksheet
-        const createMainWorksheet = async () => {
-            updateProgress('Creating main worksheet...');
-
-            const worksheet = workbook.addWorksheet('Summary Report');
-
-            // Add title
-            worksheet.mergeCells('A1:G1');
-            const titleRow = worksheet.getRow(1);
-            titleRow.getCell(1).value = 'StatusLPC Summary Report';
-            titleRow.getCell(1).style = titleStyle;
-            titleRow.height = 30;
-
-            // Add subtitle with date
-            worksheet.mergeCells('A2:G2');
-            const subtitleRow = worksheet.getRow(2);
-            subtitleRow.getCell(1).value = `Generated on ${currentDateTime}`;
-            subtitleRow.getCell(1).style = subtitleStyle;
-            subtitleRow.height = 20;
-
-            // Try to capture the entire dashboard as one image first
-            const dashboardImage = await captureDashboardImage();
-            
-            if (dashboardImage) {
-                // If we got the dashboard image, use it
-                updateProgress('Adding dashboard overview to worksheet...');
-                
-                // Add empty row for spacing
-                worksheet.getRow(3).height = 10;
-                let currentRow = 4;
-                
-                // Add dashboard title
-                worksheet.mergeCells(`A${currentRow}:G${currentRow}`);
-                worksheet.getRow(currentRow).getCell(1).value = 'Dashboard Overview';
-                worksheet.getRow(currentRow).getCell(1).style = {
-                    font: { bold: true, size: 14 },
-                    alignment: { horizontal: 'center' }
-                };
-                currentRow++;
-                
-                // Add dashboard image
-                const dashboardImageId = workbook.addImage({
-                    base64: dashboardImage,
-                    extension: 'png',
-                });
-                
-                worksheet.addImage(dashboardImageId, {
-                    tl: { col: 0.5, row: currentRow },
-                    br: { col: 7.5, row: currentRow + 25 },
-                });
-                
-                return worksheet;
-            }
-            
-            // Fall back to individual captures if the dashboard capture failed
-            const pieChartImage = await captureChartImage('.lg\\:col-span-4 canvas');
-            const barChartImage = await captureChartImage('.lg\\:col-span-5 canvas');
-            const summaryCardsImage = await captureSummaryCards();
-
-            let currentRow = 4;
-
-            if (summaryCardsImage) {
-                updateProgress('Adding summary cards to worksheet...');
-
-                // Add title for summary cards
-                worksheet.mergeCells(`A${currentRow}:G${currentRow}`);
-                worksheet.getRow(currentRow).getCell(1).value = 'Summary Cards';
-                worksheet.getRow(currentRow).getCell(1).style = {
-                    font: { bold: true, size: 14 },
-                    alignment: { horizontal: 'center' }
-                };
-                currentRow++;
-
-                // Add summary cards image
-                const summaryCardsId = workbook.addImage({
-                    base64: summaryCardsImage,
-                    extension: 'png',
-                });
-
-                worksheet.addImage(summaryCardsId, {
-                    tl: { col: 1, row: currentRow },
-                    br: { col: 7, row: currentRow + 10 },
-                });
-
-                currentRow += 12; // Space for image + buffer
-            }
-
-            if (pieChartImage) {
-                updateProgress('Adding pie chart to worksheet...');
-
-                // Add chart title
-                worksheet.mergeCells(`A${currentRow}:C${currentRow}`);
-                worksheet.getRow(currentRow).getCell(1).value = 'Payment Distribution';
-                worksheet.getRow(currentRow).getCell(1).style = {
-                    font: { bold: true, size: 14 },
-                    alignment: { horizontal: 'center' }
-                };
-
-                // Add chart image
-                const pieChartId = workbook.addImage({
-                    base64: pieChartImage,
-                    extension: 'png',
-                });
-
-                worksheet.addImage(pieChartId, {
-                    tl: { col: 1, row: currentRow + 1 },
-                    br: { col: 3.5, row: currentRow + 16 },
-                });
-            }
-
-            if (barChartImage) {
-                updateProgress('Adding bar chart to worksheet...');
-
-                // Add chart title
-                worksheet.mergeCells(`D${currentRow}:G${currentRow}`);
-                worksheet.getRow(currentRow).getCell(4).value = 'Payment vs Unpaid';
-                worksheet.getRow(currentRow).getCell(4).style = {
-                    font: { bold: true, size: 14 },
-                    alignment: { horizontal: 'center' }
-                };
-
-                // Add chart image
-                const barChartId = workbook.addImage({
-                    base64: barChartImage,
-                    extension: 'png',
-                });
-
-                worksheet.addImage(barChartId, {
-                    tl: { col: 3.5, row: currentRow + 1 },
-                    br: { col: 7, row: currentRow + 16 },
-                });
-            }
-
-            return worksheet;
-        };
-
-        // Create sorted table worksheet from API data
-        const createSortedTableWorksheet = async (filter = 'ALL') => {
-            updateProgress(`Fetching data for ${filter} sorted table...`);
-            
-            try {
-                // Add timeout for API request
-                const controller = new AbortController();
-                const timeoutId = setTimeout(() => controller.abort(), 30000); // 30 second timeout
-                
-                // Get data from API
-                const response = await fetch("http://localhost:3000/api/v2/statusLPC/sortedTable", {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({ filter: filter }),
-                    signal: controller.signal
-                });
-                clearTimeout(timeoutId);
-                
-                // Check if response is OK
-                if (!response.ok) {
-                    throw new Error(`API responded with status: ${response.status}`);
-                }
-                
-                // Check content type to make sure it's JSON
-                const contentType = response.headers.get('content-type');
-                if (!contentType || !contentType.includes('application/json')) {
-                    throw new Error('API returned non-JSON response. Check if server is running correctly.');
-                }
-                
-                const data = await response.json();
-                
-                if (!data || !data.data || data.data.length === 0) {
-                    console.error(`No data available for ${filter} sorted table`);
-                    return null;
-                }
-                
-                updateProgress(`Creating ${filter} sorted table worksheet...`);
-                const worksheet = workbook.addWorksheet(`${filter} Table`);
-
-                // Set column widths
-                worksheet.columns = [
-                    { header: 'Business Area', key: 'businessArea', width: 20 },
-                    { header: 'Total Accounts', key: 'bilAkaun', width: 15 },
-                    { header: 'Total Unpaid (RM)', key: 'totalUnpaid', width: 20 },
-                    { header: 'Payment Accounts', key: 'bilAkaunBuatBayaran', width: 20 },
-                    { header: 'Total Payment (RM)', key: 'totalPayment', width: 20 },
-                    { header: 'Balance to Collect (RM)', key: 'balanceToCollect', width: 25 },
-                    { header: 'Collection (%)', key: 'percentCollection', width: 15 }
+            // Prepare data for autofit
+            const dataRows = [];
+            data.forEach(row => {
+                const arr = [
+                    row.kategori,
+                    row.bilAkaun,
+                    row.totalUnpaid,
+                    row.bilAkaunBuatBayaran,
+                    row.totalPayment,
+                    row.balanceToCollect
                 ];
-
-                // Add title
-                worksheet.mergeCells('A1:G1');
-                const titleRow = worksheet.getRow(1);
-                titleRow.getCell(1).value = `StatusLPC ${filter} Report by Business Area`;
-                titleRow.getCell(1).style = titleStyle;
-                titleRow.height = 30;
-
-                // Add subtitle with date
-                worksheet.mergeCells('A2:G2');
-                const subtitleRow = worksheet.getRow(2);
-                subtitleRow.getCell(1).value = `Generated on ${currentDateTime}`;
-                subtitleRow.getCell(1).style = subtitleStyle;
-                subtitleRow.height = 20;
-
-                // Add empty row for spacing
-                worksheet.getRow(3).height = 10;
-
-                // Style headers
-                const headerRow = worksheet.getRow(4);
-                headerRow.eachCell({ includeEmpty: true }, (cell) => {
-                    cell.style = headerStyle;
+                dataRows.push(arr);
+                const excelRow = ws.addRow(arr);
+                excelRow.eachCell((cell, colNumber) => {
+                    if (colNumber > 1) cell.numFmt = '#,##0.00';
+                    cell.alignment = { horizontal: 'center' };
                 });
-                headerRow.height = 25;
-
-                // Add data
-                data.data.filter(row => row.businessArea !== 'JUMLAH').forEach((row, index) => {
-                    const dataRow = worksheet.addRow({
-                        businessArea: row.businessArea,
-                        bilAkaun: row.bilAkaun,
-                        totalUnpaid: row.totalUnpaid,
-                        bilAkaunBuatBayaran: row.bilAkaunBuatBayaran,
-                        totalPayment: row.totalPayment,
-                        balanceToCollect: row.balanceToCollect,
-                        percentCollection: row.percentCollection / 100 // Convert to decimal for Excel formatting
+                // Highlight JUMLAH row
+                if (row.kategori && row.kategori.toUpperCase() === 'JUMLAH') {
+                    excelRow.eachCell(cell => {
+                        cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: theme.jumlahRow } };
+                        cell.font = { bold: true, color: { argb: theme.header } };
                     });
+                }
+            });
 
-                    // Apply styles and formatting
-                    dataRow.eachCell({ includeEmpty: true }, (cell) => {
-                        cell.style = defaultCellStyle;
+            autoFitColumns(ws, dataRows, headers);
+            ws.addRow([]);
+        }
 
-                        // Format numbers
-                        if (cell.column > 1) {
-                            if (cell.column === 3 || cell.column === 5 || cell.column === 6) {
-                                // Currency format
-                                cell.numFmt = '#,##0.00';
-                            } else if (cell.column === 7) {
-                                // Percentage format
-                                cell.numFmt = '0.00%';
+        // Helper: Add sorted table to worksheet
+        function addSortedTable(ws, data, color, startRow = ws.lastRow ? ws.lastRow.number + 2 : 2) {
+            ws.mergeCells(`A${startRow}:G${startRow}`);
+            ws.getCell(`A${startRow}`).value = "Sorted Table";
+            ws.getCell(`A${startRow}`).font = { bold: true, size: 14, color: { argb: color } };
+            ws.getCell(`A${startRow}`).alignment = { horizontal: 'center' };
 
-                                // Conditional formatting for percentage column
-                                const percentage = row.percentCollection;
-                                if (percentage >= 90) {
-                                    cell.fill = {
-                                        type: 'pattern',
-                                        pattern: 'solid',
-                                        fgColor: { argb: 'FF4CAF50' } // Green
-                                    };
-                                } else if (percentage >= 70) {
-                                    cell.fill = {
-                                        type: 'pattern',
-                                        pattern: 'solid',
-                                        fgColor: { argb: 'FF8BC34A' } // Light green
-                                    };
-                                } else if (percentage >= 50) {
-                                    cell.fill = {
-                                        type: 'pattern',
-                                        pattern: 'solid',
-                                        fgColor: { argb: 'FFFFEB3B' } // Yellow
-                                    };
-                                } else if (percentage >= 30) {
-                                    cell.fill = {
-                                        type: 'pattern',
-                                        pattern: 'solid',
-                                        fgColor: { argb: 'FFFF9800' } // Orange
-                                    };
-                                } else {
-                                    cell.fill = {
-                                        type: 'pattern',
-                                        pattern: 'solid',
-                                        fgColor: { argb: 'FFF44336' } // Red
-                                    };
-                                }
-                            }
-                        }
-                    });
+            ws.addRow([]);
+            const headers = [
+                'Business Area', 'Bil Akaun', 'Total Unpaid (RM)', 'Bil Akaun Buat Bayaran',
+                'Total Payment (RM)', 'Balance to Collect (RM)', '% Collection'
+            ];
+            const headerRow = ws.addRow(headers);
+            headerRow.eachCell(cell => {
+                cell.font = { bold: true, color: { argb: theme.white } };
+                cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: color } };
+                cell.alignment = { horizontal: 'center' };
+            });
 
-                    // Apply alternate row styling (except for percentage column)
-                    if (index % 2 === 1) {
-                        for (let colIndex = 1; colIndex <= 6; colIndex++) {
-                            const cell = dataRow.getCell(colIndex);
-                            cell.style = { ...cell.style, ...alternateRowStyle };
-                        }
+            // Set columns explicitly for ExcelJS auto width to work better
+            ws.columns = headers.map(() => ({ width: 10 }));
+
+            const dataRows = [];
+            data.forEach(row => {
+                const arr = [
+                    row.businessArea,
+                    row.bilAkaun,
+                    row.totalUnpaid,
+                    row.bilAkaunBuatBayaran,
+                    row.totalPayment,
+                    row.balanceToCollect,
+                    row.percentCollection
+                ];
+                dataRows.push(arr);
+                const excelRow = ws.addRow(arr);
+                excelRow.eachCell((cell, colNumber) => {
+                    if (colNumber === 2) { // Bil Akaun (contract account) as integer
+                        cell.numFmt = '0';
+                    } else if (colNumber > 2 && colNumber < 7) {
+                        cell.numFmt = '#,##0.00';
+                    } else if (colNumber === 7) {
+                        cell.numFmt = '0"%"';
                     }
+                    cell.alignment = { horizontal: 'center' };
                 });
-
-                // Add total row
-                const totalRow = data.data.find(row => row.businessArea === 'JUMLAH');
-                if (totalRow) {
-                    const totalExcelRow = worksheet.addRow({
-                        businessArea: 'JUMLAH',
-                        bilAkaun: totalRow.bilAkaun,
-                        totalUnpaid: totalRow.totalUnpaid,
-                        bilAkaunBuatBayaran: totalRow.bilAkaunBuatBayaran,
-                        totalPayment: totalRow.totalPayment,
-                        balanceToCollect: totalRow.balanceToCollect,
-                        percentCollection: totalRow.percentCollection / 100 // Convert to decimal for Excel formatting
-                    });
-
-                    totalExcelRow.eachCell({ includeEmpty: true }, (cell) => {
-                        cell.style = totalRowStyle;
-
-                        // Format numbers
-                        if (cell.column > 1) {
-                            if (cell.column === 3 || cell.column === 5 || cell.column === 6) {
-                                cell.numFmt = '#,##0.00';
-                            } else if (cell.column === 7) {
-                                cell.numFmt = '0.00%';
-                            }
-                        }
+                // Highlight JUMLAH row
+                if (
+                    typeof row.businessArea === 'string' &&
+                    ['JUMLAH'].includes(row.businessArea.trim().toUpperCase())
+                ) {
+                    excelRow.eachCell(cell => {
+                        cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: theme.jumlahRow } };
+                        cell.font = { bold: true, color: { argb: theme.header } };
                     });
                 }
+            });
 
-                // Add autofilter
-                worksheet.autoFilter = {
-                    from: { row: 4, column: 1 },
-                    to: { row: data.data.length + 3, column: 7 }
-                };
+            // Auto-fit columns after adding all rows
+            autoFitColumns(ws, dataRows, headers);
 
-                return worksheet;
-            } catch (error) {
-                console.error(`Error fetching or processing ${filter} API data:`, error);
-                
-                // Create error worksheet instead
-                const errorWorksheet = workbook.addWorksheet(`${filter} Error`);
-                
-                errorWorksheet.mergeCells('A1:G1');
-                const titleRow = errorWorksheet.getRow(1);
-                titleRow.getCell(1).value = 'Error Loading Data';
-                titleRow.getCell(1).style = {
-                    font: { bold: true, size: 16, color: { argb: 'FFFF0000' } },
-                    alignment: { horizontal: 'center' }
-                };
-                titleRow.height = 30;
-                
-                errorWorksheet.mergeCells('A3:G3');
-                errorWorksheet.getRow(3).getCell(1).value = `Error: ${error.message}`;
-                errorWorksheet.getRow(3).getCell(1).style = {
-                    font: { size: 12 },
-                    alignment: { horizontal: 'center' }
-                };
-                
-                errorWorksheet.mergeCells('A5:G5');
-                errorWorksheet.getRow(5).getCell(1).value = 'Please check if the API server is running at http://localhost:3000';
-                errorWorksheet.getRow(5).getCell(1).style = {
-                    alignment: { horizontal: 'center' }
-                };
-                
-                errorWorksheet.mergeCells('A7:G7');
-                errorWorksheet.getRow(7).getCell(1).value = 'Troubleshooting steps:';
-                errorWorksheet.getRow(7).getCell(1).style = {
-                    font: { bold: true },
-                    alignment: { horizontal: 'left' }
-                };
-                
-                const steps = [
-                    '1. Verify your API server is running',
-                    '2. Check the endpoint URL is correct: /api/v2/statusLPC/sortedTable',
-                    '3. Make sure your server is returning valid JSON data',
-                    '4. Check for any network connectivity issues'
-                ];
-                
-                steps.forEach((step, index) => {
-                    errorWorksheet.mergeCells(`A${9 + index}:G${9 + index}`);
-                    errorWorksheet.getRow(9 + index).getCell(1).value = step;
-                    errorWorksheet.getRow(9 + index).getCell(1).style = {
-                        alignment: { horizontal: 'left' }
-                    };
-                });
-                
-                // Adjust column widths
-                errorWorksheet.columns.forEach(column => {
-                    column.width = 15;
-                });
-                
-                return errorWorksheet;
+            ws.addRow([]);
+        }
+
+        // Helper: Add detailed table to worksheet
+        function addDetailedTable(ws, data, color, startRow = ws.lastRow ? ws.lastRow.number + 2 : 2) {
+            ws.mergeCells(`A${startRow}:${String.fromCharCode(65 + (data.length > 0 ? Object.keys(data[0]).length - 1 : 5))}${startRow}`);
+            ws.getCell(`A${startRow}`).value = "Detailed Table";
+            ws.getCell(`A${startRow}`).font = { bold: true, size: 14, color: { argb: color } };
+            ws.getCell(`A${startRow}`).alignment = { horizontal: 'center' };
+
+            ws.addRow([]);
+            if (data.length === 0) {
+                ws.addRow(['No detailed data available']);
+                return;
             }
-        };
+            const headers = Object.keys(data[0]);
+            const headerRow = ws.addRow(headers);
+            headerRow.eachCell(cell => {
+                cell.font = { bold: true, color: { argb: theme.white } };
+                cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: color } };
+                cell.alignment = { horizontal: 'center' };
+            });
 
-        // Create workbook with worksheets
-        try {
-            // First sheet with charts and summary (ALL data)
-            await createMainWorksheet();
-            
-            // Create filtered table worksheets
-            await createSortedTableWorksheet('ALL');
-            await createSortedTableWorksheet('DEBT');
-            await createSortedTableWorksheet('CURRENT');
-            await createSortedTableWorksheet('PRIME');
+            const dataRows = [];
+            data.forEach(row => {
+                const arr = headers.map(h => {
+                    // Contract account column: integer, no decimal
+                    if (h.toLowerCase().includes('contract') && typeof row[h] === 'number') {
+                        return Math.round(row[h]);
+                    }
+                    return row[h];
+                });
+                dataRows.push(arr);
+                const excelRow = ws.addRow(arr);
+                excelRow.eachCell((cell, colNumber) => {
+                    // Contract account column: integer, no decimal
+                    if (headers[colNumber - 1].toLowerCase().includes('contract')) {
+                        cell.numFmt = '0';
+                    }
+                    cell.alignment = { horizontal: 'center' };
+                });
+                // Highlight JUMLAH row
+                if (row[headers[0]] && row[headers[0]].toUpperCase && row[headers[0]].toUpperCase() === 'JUMLAH') {
+                    excelRow.eachCell(cell => {
+                        cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: theme.jumlahRow } };
+                        cell.font = { bold: true, color: { argb: theme.header } };
+                    });
+                }
+            });
 
-            // Set first sheet as active when opening
-            workbook.views = [{ activeTab: 0 }];
-
-            updateProgress('Finalizing report...');
-
-            // Export the workbook
-            const buffer = await workbook.xlsx.writeBuffer();
-            const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
-            const link = document.createElement('a');
-            link.href = URL.createObjectURL(blob);
-            link.download = 'StatusLPC_Report.xlsx';
-            link.click();
-
-            // Remove loading indicator
-            document.body.removeChild(loadingIndicator);
-
-            // Show success message
-            const successMessage = document.createElement('div');
-            successMessage.className = 'fixed bottom-4 right-4 bg-green-500 text-white p-4 rounded-lg shadow-lg z-50';
-            successMessage.innerHTML = `
-                <div class="flex items-center">
-                    <svg class="w-6 h-6 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
-                    </svg>
-                    <p>Report generated successfully!</p>
-                </div>
-            `;
-            document.body.appendChild(successMessage);
-
-            // Remove success message after 3 seconds
-            setTimeout(() => {
-                document.body.removeChild(successMessage);
-            }, 3000);
-        } catch (worksheetError) {
-            console.error('Error creating worksheets:', worksheetError);
-            throw worksheetError;
+            autoFitColumns(ws, dataRows, headers);
+            ws.addRow([]);
         }
+
+        // 1. SUMMARY SHEET
+        const summarySheet = workbook.addWorksheet('SUMMARY', { properties: { tabColor: { argb: theme.summary } } });
+
+        // Add summary table first
+        addSummaryTable(summarySheet, summaryTableData, summarySheet.lastRow ? summarySheet.lastRow.number + 2 : 2);
+
+        // Add image below the table
+        if (dashboardImageBase64) {
+            const imageRow = summarySheet.lastRow ? summarySheet.lastRow.number + 2 : 20;
+            await addSummaryDashboardImage(summarySheet, dashboardImageBase64, imageRow);
+        }
+
+        // 2. PRIME SHEET
+        const primeSheet = workbook.addWorksheet('PRIME', { properties: { tabColor: { argb: theme.prime } } });
+        addSortedTable(primeSheet, prime.sortedData, theme.prime, 2);
+        addDetailedTable(primeSheet, prime.detailedData, theme.prime, primeSheet.lastRow ? primeSheet.lastRow.number + 2 : 2);
+
+        // 3. CURRENT SHEET
+        const currentSheet = workbook.addWorksheet('CURRENT', { properties: { tabColor: { argb: theme.current } } });
+        addSortedTable(currentSheet, current.sortedData, theme.current, 2);
+        addDetailedTable(currentSheet, current.detailedData, theme.current, currentSheet.lastRow ? currentSheet.lastRow.number + 2 : 2);
+
+        // 4. DEBT SHEET
+        const debtSheet = workbook.addWorksheet('DEBT', { properties: { tabColor: { argb: theme.debt } } });
+        addSortedTable(debtSheet, debt.sortedData, theme.debt, 2);
+        addDetailedTable(debtSheet, debt.detailedData, theme.debt, debtSheet.lastRow ? debtSheet.lastRow.number + 2 : 2);
+
+        // Set first sheet as active
+        workbook.views = [{ activeTab: 0 }];
+
+        updateProgress("Saving Excel file...");
+        const buffer = await workbook.xlsx.writeBuffer();
+        const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `StatusLPC_Report_${new Date().toISOString().replace(/[:.]/g, '-')}.xlsx`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        window.URL.revokeObjectURL(url);
+
+        document.body.removeChild(loadingIndicator);
+
+        // Show success message
+        const successMessage = document.createElement('div');
+        successMessage.className = 'fixed bottom-4 right-4 bg-green-500 text-white p-4 rounded-lg shadow-lg z-50';
+        successMessage.innerHTML = `
+            <div class="flex items-center">
+                <svg class="w-6 h-6 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                </svg>
+                <p>StatusLPC Report generated successfully!</p>
+            </div>
+        `;
+        document.body.appendChild(successMessage);
+        setTimeout(() => {
+            document.body.removeChild(successMessage);
+        }, 3000);
+
     } catch (error) {
-        console.error('Error generating Excel report:', error);
-
-        // Remove loading indicator if it exists
-        const loadingIndicator = document.querySelector('.fixed.inset-0.bg-black.bg-opacity-50');
-        if (loadingIndicator) {
+        console.error('Error generating StatusLPC Excel report:', error);
+        if (loadingIndicator && loadingIndicator.parentNode) {
             document.body.removeChild(loadingIndicator);
         }
-
-        // Show error message
         const errorMessage = document.createElement('div');
         errorMessage.className = 'fixed bottom-4 right-4 bg-red-500 text-white p-4 rounded-lg shadow-lg z-50';
         errorMessage.innerHTML = `
@@ -636,12 +363,10 @@ export async function generateStatusLPCReport() {
                 <svg class="w-6 h-6 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
                 </svg>
-                <p>Error generating report: ${error.message}</p>
+                <p>Error generating StatusLPC report: ${error.message}</p>
             </div>
         `;
         document.body.appendChild(errorMessage);
-
-        // Remove error message after 5 seconds
         setTimeout(() => {
             document.body.removeChild(errorMessage);
         }, 5000);

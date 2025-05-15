@@ -9,7 +9,6 @@ import { CloudArrowUpIcon } from '@heroicons/react/24/outline';
 
 export default function Upload() {
   const [snackbar, setSnackbar] = useState({ message: '', type: '' });
-  const [selectedDate, setSelectedDate] = useState(new Date());
   const [isUploading, setIsUploading] = useState(false);
   const [isUploaded, setIsUploaded] = useState(false);
   const router = useRouter();
@@ -24,10 +23,9 @@ export default function Upload() {
 
     const formData = new FormData();
     formData.append('file', file);
-    formData.append('uploadDate', selectedDate.toISOString());
 
     try {
-      const response = await fetch('http://localhost:3000/api/v2/status21/upload', {
+      const response = await fetch('http://localhost:3000/api/v2/statusLPC/upload', {
         method: 'POST',
         body: formData,
       });
@@ -48,7 +46,6 @@ export default function Upload() {
 
       setSnackbar({ message: 'File uploaded and processed successfully!', type: 'success' });
       setIsUploaded(true);
-      localStorage.setItem('status21_selectedDate', selectedDate.toISOString());
     } catch (error) {
       console.error('Error uploading file:', error);
       setSnackbar({ message: error.message, type: 'error' });
@@ -80,7 +77,7 @@ export default function Upload() {
 
   const handleSnackbarClick = () => {
     if (snackbar.type === 'success') {
-      router.push('/dashboard');
+      router.push('/statusLPC/dashboard');
     }
   };
 
@@ -88,8 +85,8 @@ export default function Upload() {
     <>
       <Navbar />
       <div className="container mx-auto px-4 py-6">
-        <h1 className="text-2xl font-bold mb-1">Welcome to Status21 System</h1>
-        <p className="text-gray-600 mb-6">Upload Excel files containing overall accounts data.</p>
+        <h1 className="text-2xl font-bold mb-1 ">Welcome to StatusLPC System</h1>
+        <p className="text-gray-600 mb-6">Upload Excel files containing LPC data.</p>
 
         <div className="bg-white rounded-lg border border-gray-200 p-6 mb-6 shadow-sm">
           {isUploaded ? (
@@ -100,7 +97,7 @@ export default function Upload() {
                 Your file has been uploaded and processed successfully.
               </p>
               <button
-                onClick={() => router.push('/status21/dashboard')}
+                onClick={() => router.push('/statusLPC/dashboard')}
                 className="inline-flex items-center px-6 py-3 border border-transparent text-sm font-medium 
                 rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
               >
@@ -110,21 +107,6 @@ export default function Upload() {
           ) : (
             // Upload Section UI
             <>
-              {/* Date Picker */}
-              <div className="mb-4">
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Select Upload Date
-                </label>
-                <input
-                  type="date"
-                  value={selectedDate.toISOString().split('T')[0]}
-                  onChange={(e) => setSelectedDate(new Date(e.target.value))}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm 
-                             focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  disabled={isUploading}
-                />
-              </div>
-
               {/* File Upload Area */}
               <div
                 {...getRootProps()}
@@ -169,3 +151,4 @@ export default function Upload() {
     </>
   );
 }
+

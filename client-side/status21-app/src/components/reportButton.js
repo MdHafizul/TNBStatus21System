@@ -2,13 +2,18 @@
 
 import { generateStatus21Report } from "@/utils/status21/excelUtils";
 import { generateGovSorterReport } from "@/utils/GovSorter/excelUtils";
+import { generateStatusLPCReport } from "@/utils/statusLPC/excelUtil";
 
-export default function GenerateReportButton({ filter, setFilter, type }) {
+export default function GenerateReportButton({ filter, setFilter, type , selectedDate}) {
     const handleClick = () => {
         if (type === "govsorter") {
             generateGovSorterReport(filter, setFilter);
-        } else {
-            generateStatus21Report(filter, setFilter);
+        }
+        if (type === "statusLPC") {
+            generateStatusLPCReport();
+        }
+        else {
+            generateStatus21Report(filter, setFilter, selectedDate);
         }
     };
 
