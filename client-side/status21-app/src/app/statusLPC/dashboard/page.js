@@ -14,8 +14,6 @@ export default function StatusLPCDashboard() {
     const [isLoading, setIsLoading] = useState(true);
     
     useEffect(() => {
-        // Set a timeout to ensure the loading screen shows for enough time
-        // for components to properly initialize and fetch data
         const timer = setTimeout(() => {
             setIsLoading(false);
         }, 2500); // 2.5 seconds minimum loading time
@@ -56,10 +54,10 @@ export default function StatusLPCDashboard() {
                 <FilterDropdown filter={filter} setFilter={setFilter} />
 
                 {/* Sorted Table */}
-                <SortedTable filter={filter} />
+                <SortedTable/>
 
                 {/* Detailed Table */}
-                <DetailedTable filter={filter} />
+                <DetailedTable/>
             </main>
         </>
     );

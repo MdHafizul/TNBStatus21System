@@ -3,6 +3,8 @@
 import { useEffect, useState, useCallback } from "react";
 import Snackbar from "../snackBar";
 import React from "react";
+import useStatusLPCStore from "@/store/statusLPCStore";
+
 const detailedTableCache = {};
 
 // Debounce utility
@@ -14,12 +16,13 @@ function debounce(func, delay) {
     };
 }
 
-export default function DetailedTable({ filter }) {
+export default function DetailedTable() {
     const [isLoading, setIsLoading] = useState(false);
     const [data, setData] = useState([]);
     const [headers, setHeaders] = useState([]);
     const [snackbar, setSnackbar] = useState({ message: "", type: "" });
-    const [selectedBusinessArea, setSelectedBusinessArea] = useState('ALL');
+    const [selectedBusinessArea, setSelectedBusinessArea] = useState('ALL'); 
+    const filter = useStatusLPCStore((state) => state.filter);
 
     const businessAreas = [
         'ALL',

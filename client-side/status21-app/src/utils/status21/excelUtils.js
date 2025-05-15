@@ -123,7 +123,7 @@ export async function generateStatus21Report(filter, setFilter, selectedDate) {
             await new Promise(resolve => setTimeout(resolve, 2000));
         };
 
-        // Improved chart capture function
+        //chart capture function
         const captureChartImage = async (filterName) => {
             updateProgress(`Capturing ${filterName} chart...`);
 

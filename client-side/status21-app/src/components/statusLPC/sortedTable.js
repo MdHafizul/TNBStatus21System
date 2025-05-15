@@ -2,13 +2,16 @@
 
 import { useEffect, useState } from "react";
 import Snackbar from "../snackBar";
+import useStatusLPCStore from "@/store/statusLPCStore";
+
 const sortedTableCache = {};
 
-export default function SortedTable({ filter }) {
+export default function SortedTable() {
     const [isLoading, setIsLoading] = useState(false);
     const [data, setData] = useState([]);
     const [totalRow, setTotalRow] = useState(null);
     const [snackbar, setSnackbar] = useState({ message: "", type: "" });
+    const filter = useStatusLPCStore((state) => state.filter);
 
 
     useEffect(() => {
@@ -76,9 +79,9 @@ export default function SortedTable({ filter }) {
                     <thead className="bg-purple-50">
                         <tr>
                             <th className="px-6 py-3 text-left text-xs font-semibold text-purple-700 uppercase tracking-wider">Business Area</th>
-                            <th className="px-6 py-3 text-left text-xs font-semibold text-purple-700 uppercase tracking-wider">Bil Akaun</th>
+                            <th className="px-6 py-3 text-left text-xs font-semibold text-purple-700 uppercase tracking-wider">No. Of CA</th>
                             <th className="px-6 py-3 text-left text-xs font-semibold text-purple-700 uppercase tracking-wider">Total Unpaid (RM)</th>
-                            <th className="px-6 py-3 text-left text-xs font-semibold text-purple-700 uppercase tracking-wider">Bil Akaun Buat Bayaran</th>
+                            <th className="px-6 py-3 text-left text-xs font-semibold text-purple-700 uppercase tracking-wider">No. Of Paying Acc</th>
                             <th className="px-6 py-3 text-left text-xs font-semibold text-purple-700 uppercase tracking-wider">Total Payment (RM)</th>
                             <th className="px-6 py-3 text-left text-xs font-semibold text-purple-700 uppercase tracking-wider">Balance to Collect (RM)</th>
                             <th className="px-6 py-3 text-left text-xs font-semibold text-purple-700 uppercase tracking-wider">% Collection</th>

@@ -1,24 +1,15 @@
 'use client';
 
-import { useState } from "react";
+import useStatusLPCStore from "@/store/statusLPCStore";
 
-/**
- * Filter dropdown for StatusLPC tables.
- * 
- * @param {object} props
- * @param {string} props.filter - Current filter value
- * @param {function} props.setFilter - Setter for filter value
- */
-export default function FilterDropdown({
-    filter,
-    setFilter
-}) {
-    // Category options for StatusLPC
+export default function FilterDropdown() {
+    const filter = useStatusLPCStore((state) => state.filter);
+    const setFilter = useStatusLPCStore((state) => state.setFilter);
+
     const categoryOptions = ['ALL', 'PRIME', 'CURRENT', 'DEBT'];
 
     const handleChange = (e) => {
-        const value = e.target.value;
-        setFilter(value);
+        setFilter(e.target.value);
     };
 
     return (

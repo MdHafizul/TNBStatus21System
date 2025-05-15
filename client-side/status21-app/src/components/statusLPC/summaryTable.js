@@ -52,10 +52,10 @@ export default function SummaryTable() {
                 <table className="min-w-full divide-y divide-purple-100">
                     <thead className="bg-purple-50">
                         <tr>
-                            <th className="px-6 py-3 text-left text-xs font-semibold text-purple-700 uppercase tracking-wider">Kategori</th>
-                            <th className="px-6 py-3 text-left text-xs font-semibold text-purple-700 uppercase tracking-wider">Bil Akaun</th>
+                            <th className="px-6 py-3 text-left text-xs font-semibold text-purple-700 uppercase tracking-wider">Category</th>
+                            <th className="px-6 py-3 text-left text-xs font-semibold text-purple-700 uppercase tracking-wider">No. Of CA</th>
                             <th className="px-6 py-3 text-left text-xs font-semibold text-purple-700 uppercase tracking-wider">Total Unpaid (RM)</th>
-                            <th className="px-6 py-3 text-left text-xs font-semibold text-purple-700 uppercase tracking-wider">Bil Akaun Buat Bayaran</th>
+                            <th className="px-6 py-3 text-left text-xs font-semibold text-purple-700 uppercase tracking-wider">No. Of Paying Acc</th>
                             <th className="px-6 py-3 text-left text-xs font-semibold text-purple-700 uppercase tracking-wider">Total Payment (RM)</th>
                             <th className="px-6 py-3 text-left text-xs font-semibold text-purple-700 uppercase tracking-wider">Balance to Collect (RM)</th>
                         </tr>
