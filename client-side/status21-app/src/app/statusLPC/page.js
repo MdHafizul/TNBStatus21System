@@ -6,6 +6,7 @@ import { useDropzone } from 'react-dropzone';
 import Navbar from '@/components/navbar';
 import Snackbar from '@/components/snackBar';
 import { CloudArrowUpIcon } from '@heroicons/react/24/outline';
+import { apiFetch } from '@/utils/api';
 
 export default function Upload() {
   const [snackbar, setSnackbar] = useState({ message: '', type: '' });
@@ -25,7 +26,7 @@ export default function Upload() {
     formData.append('file', file);
 
     try {
-      const response = await fetch('http://localhost:3000/api/v2/statusLPC/upload', {
+      const response = await apiFetch('/api/v2/statusLPC/upload', {
         method: 'POST',
         body: formData,
       });

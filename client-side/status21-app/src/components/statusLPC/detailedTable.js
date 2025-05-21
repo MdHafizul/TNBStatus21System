@@ -4,6 +4,7 @@ import { useEffect, useState, useCallback } from "react";
 import Snackbar from "../snackBar";
 import React from "react";
 import useStatusLPCStore from "@/store/statusLPCStore";
+import { apiFetch } from '@/utils/api';
 
 const detailedTableCache = {};
 
@@ -64,7 +65,7 @@ export default function DetailedTable() {
             }
 
             try {
-                const response = await fetch("http://localhost:3000/api/v2/statusLPC/detailedTable", {
+                const response = await apiFetch("/api/v2/statusLPC/detailedTable", {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
                     body: JSON.stringify({

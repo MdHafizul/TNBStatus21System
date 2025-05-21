@@ -1,5 +1,6 @@
 import ExcelJS from 'exceljs';
 import { toPng } from 'html-to-image';
+import { apiFetch } from '@/utils/api';
 
 export async function generateStatus21Report(filter, setFilter, selectedDate) {
     try {
@@ -190,7 +191,7 @@ export async function generateStatus21Report(filter, setFilter, selectedDate) {
 
             // Fetch data for this filter type
             updateProgress(`Fetching ${filterName} data...`);
-            const response = await fetch("http://localhost:3000/api/v2/status21/process-file", {
+            const response = await apiFetch("/api/v2/status21/process-file", {
                 method: "GET",
                 headers: {
                     "x-data-type": filterValue,

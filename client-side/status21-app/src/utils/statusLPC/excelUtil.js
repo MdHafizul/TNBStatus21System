@@ -1,6 +1,7 @@
 import ExcelJS from 'exceljs';
 import html2canvas from 'html2canvas';
 import { toPng } from 'html-to-image';
+import { apiFetch } from '@/utils/api';
 
 /**
  * Generate StatusLPC Excel Report with 4 sheets:
@@ -30,20 +31,20 @@ export async function generateStatusLPCReport() {
     try {
         updateProgress("Fetching summary dashboard data...");
         // 1. Fetch summary dashboard data (summary cards)
-        const summaryCardsRes = await fetch('http://localhost:3000/api/v2/statusLPC/summaryCards');
+        const summaryCardsRes = await apiFetch('/api/v2/statusLPC/summaryCards');
         if (!summaryCardsRes.ok) throw new Error('Failed to fetch summary dashboard data');
         const summaryCards = (await summaryCardsRes.json()).data || {};
 
         updateProgress("Fetching summary table data...");
         // 2. Fetch summary table data
-        const summaryTableRes = await fetch('http://localhost:3000/api/v2/statusLPC/summaryTable');
+        const summaryTableRes = await apiFetch('/api/v2/statusLPC/summaryTable');
         if (!summaryTableRes.ok) throw new Error('Failed to fetch summary table data');
         const summaryTableData = (await summaryTableRes.json()).data || [];
 
         // Helper to fetch sorted and detailed table for a filter
         const fetchSortedAndDetailed = async (filter) => {
             updateProgress(`Fetching sorted table for ${filter}...`);
-            const sortedRes = await fetch('http://localhost:3000/api/v2/statusLPC/sortedTable', {
+            const sortedRes = await apiFetch('/api/v2/statusLPC/sortedTable', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ filter })
@@ -52,7 +53,7 @@ export async function generateStatusLPCReport() {
             const sortedData = (await sortedRes.json()).data || [];
 
             updateProgress(`Fetching detailed table for ${filter}...`);
-            const detailedRes = await fetch('http://localhost:3000/api/v2/statusLPC/detailedTable', {
+            const detailedRes = await apiFetch('/api/v2/statusLPC/detailedTable', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ teamFilter: filter, businessAreaFilter: 'ALL' })
@@ -64,10 +65,11 @@ export async function generateStatusLPCReport() {
         };
 
         // Fetch for PRIME, CURRENT, DEBT
-        const [prime, current, debt] = await Promise.all([
+        const [prime, current, debt, all] = await Promise.all([
             fetchSortedAndDetailed('PRIME'),
             fetchSortedAndDetailed('CURRENT'),
-            fetchSortedAndDetailed('DEBT')
+            fetchSortedAndDetailed('DEBT'),
+            fetchSortedAndDetailed('ALL')
         ]);
 
         updateProgress("Capturing dashboard image...");
@@ -176,6 +178,8 @@ export async function generateStatusLPCReport() {
             autoFitColumns(ws, dataRows, headers);
             ws.addRow([]);
         }
+
+
 
         // Helper: Add sorted table to worksheet
         function addSortedTable(ws, data, color, startRow = ws.lastRow ? ws.lastRow.number + 2 : 2) {
@@ -297,10 +301,13 @@ export async function generateStatusLPCReport() {
         // Add summary table first
         addSummaryTable(summarySheet, summaryTableData, summarySheet.lastRow ? summarySheet.lastRow.number + 2 : 2);
 
+        // Add sorted table for filter "ALL" to the summary sheet
+        addSortedTable(summarySheet, all.sortedData, theme.summary, summarySheet.lastRow ? summarySheet.lastRow.number + 2 : 2);
+
         // Add image below the table
         if (dashboardImageBase64) {
             const imageRow = summarySheet.lastRow ? summarySheet.lastRow.number + 2 : 20;
-            await addSummaryDashboardImage(summarySheet, dashboardImageBase64, imageRow);
+            await addSummaryDashboardImage(summarySheet, dashboardImageBase64, 32);
         }
 
         // 2. PRIME SHEET

@@ -38,7 +38,7 @@ exports.uploadFile = async (req, res) => {
             message: 'File uploaded and processed successfully',
             data: result
         });
-    } catch (error){
+    } catch (error) {
         return res.status(500).json({
             success: false,
             message: 'Server Error',
@@ -76,8 +76,9 @@ exports.daysAndCategory = (req, res, next) => {
         if (cachedResult) {
             return res.json(cachedResult);
         }
-
-        const data = uploadedData.Sheet1;
+        const sheetNames = Object.keys(uploadedData).filter(name => name !== 'selectedDate');
+        const firstSheetName = sheetNames[0];
+        const data = uploadedData[firstSheetName];
         let result;
 
         if (type === 'belumrevisit') {
@@ -178,7 +179,9 @@ exports.processFile = (req, res, next) => {
             return res.json(cachedResult);
         }
 
-        const data = uploadedData.Sheet1;
+        const sheetNames = Object.keys(uploadedData).filter(name => name !== 'selectedDate');
+        const firstSheetName = sheetNames[0];
+        const data = uploadedData[firstSheetName];
         let result;
 
         // Process data based on type and cache the results

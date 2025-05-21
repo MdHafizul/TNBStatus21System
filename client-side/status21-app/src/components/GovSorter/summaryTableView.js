@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useState } from "react"
 import Snackbar from "../snackBar"
+import { apiFetch } from '@/utils/api'
 
 export default function SummaryTableView() {
     const [isLoading, setIsLoading] = useState(false)
@@ -11,7 +12,7 @@ export default function SummaryTableView() {
     const fetchFileData = useCallback(async () => {
         setIsLoading(true);
         try {
-            const response = await fetch("http://localhost:3000/api/v2/govSorter/summary")
+            const response = await apiFetch("/api/v2/govSorter/summary")
             if (!response.ok) {
                 throw new Error(`Failed to fetch summary data: ${response.statusText}`)
             }

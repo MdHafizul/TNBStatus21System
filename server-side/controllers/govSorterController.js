@@ -23,8 +23,12 @@ exports.uploadFile = async (req, res, next) => {
 
         //store the result
         cache.set('govSorterData', result);
-        // Automatically process and sort after upload
-        const data = result.Sheet1;
+
+        // Get the first sheet name dynamically
+        const sheetNames = Object.keys(result);
+        const firstSheetName = sheetNames[0];
+        const data = result[firstSheetName];
+
         const processedData = govProcessor.processAndSortByCategory(data);
         cache.set('results', processedData, 1200);
 
@@ -58,8 +62,10 @@ exports.processAndSort = async (req, res, next) => {
         if (cachedResult) {
             return res.json(cachedResult);
         }
-
-        const data = uploadedData.Sheet1
+        // Get the first sheet name dynamically
+        const sheetNames = Object.keys(result);
+        const firstSheetName = sheetNames[0];
+        const data = result[firstSheetName];
 
         const processedData = govProcessor.processAndSortByCategory(data);
 
@@ -86,8 +92,14 @@ exports.getSummary = async (req, res, next) => {
             return next(new ErrorResponse('No data found. Please upload a file first.', 404));
         }
 
-        // Check cache first
-        const data = Array.isArray(processedData) ? processedData : processedData.Sheet1;
+        let data;
+        if (Array.isArray(processedData)) {
+            data = processedData;
+        } else if (processedData && typeof processedData === 'object') {
+            const sheetNames = Object.keys(processedData);
+            data = processedData[sheetNames[0]];
+        }
+
         if (!data) {
             return next(new ErrorResponse('No processed data available.', 500));
         }
@@ -118,9 +130,15 @@ exports.getAgensiSummary = async (req, res, next) => {
             return next(new ErrorResponse('No data found. Please upload a file first.', 404));
         }
 
-        const filters = req.body;
 
-        const data = Array.isArray(processedData) ? processedData : processedData.Sheet1;
+        let data;
+        if (Array.isArray(processedData)) {
+            data = processedData;
+        } else if (processedData && typeof processedData === 'object') {
+            const sheetNames = Object.keys(processedData);
+            data = processedData[sheetNames[0]];
+        }
+        const filters = req.body;
         if (!data) {
             return next(new ErrorResponse('No processed data available.', 500));
         }
@@ -151,10 +169,16 @@ exports.getDetailData = async (req, res, next) => {
         if (!processedData) {
             return next(new ErrorResponse('No data found. Please upload a file first.', 404));
         }
-
+        let data;
+        if (Array.isArray(processedData)) {
+            data = processedData;
+        } else if (processedData && typeof processedData === 'object') {
+            const sheetNames = Object.keys(processedData);
+            data = processedData[sheetNames[0]];
+        }
         const filters = req.body;
 
-        const data = Array.isArray(processedData) ? processedData : processedData.Sheet1;
+
         if (!data) {
             return next(new ErrorResponse('No processed data available.', 500));
         }

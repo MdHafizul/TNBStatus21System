@@ -1,6 +1,7 @@
 'use client'
 
 import ExcelJS from 'exceljs';
+import { apiFetch } from '@/utils/api';
 
 export async function generateGovSorterReport(filter, setFilter) {
     try {
@@ -255,13 +256,13 @@ export async function generateGovSorterReport(filter, setFilter) {
             updateProgress("Fetching summary data...");
 
             const [summaryRes, agensiSummaryRes, detailedRes] = await Promise.all([
-                fetch("http://localhost:3000/api/v2/govSorter/summary", { method: "GET" }),
-                fetch("http://localhost:3000/api/v2/govSorter/agensiSummary", {
+                apiFetch("/api/v2/govSorter/summary", { method: "GET" }),
+                apiFetch("/api/v2/govSorter/agensiSummary", {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
                     body: JSON.stringify(filter)
                 }),
-                fetch("http://localhost:3000/api/v2/govSorter/detailedData", {
+                apiFetch("/api/v2/govSorter/detailedData", {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
                     body: JSON.stringify(filter)

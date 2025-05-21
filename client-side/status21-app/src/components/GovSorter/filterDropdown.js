@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from "react";
+import { apiFetch } from "@/utils/api";
 
 /**
  * Universal filter dropdown for GSorter tables.
@@ -29,7 +30,7 @@ export default function FilterDropdown({
         if (!showCategory) return;
         async function fetchCategories() {
             try {
-                const res = await fetch("http://localhost:3000/api/v2/govSorter/summary");
+                const res = await apiFetch("/api/v2/govSorter/summary");
                 const result = await res.json();
                 const categories = Array.from(new Set((result.data || []).map(row => row.Category)));
                 setCategoryOptions(['ALL', ...categories]);

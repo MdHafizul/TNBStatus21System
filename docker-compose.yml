@@ -1,6 +1,6 @@
 services:
   backend:
-    image: hapejoy/status21-server:v3.0
+    image: hapejoy/status21-server:v3.1
     ports:
       - "3000:3000"
     environment:
@@ -16,6 +16,7 @@ services:
     #   - "8080:8080"
     environment:
       PORT: 8080
+      API_URL: http://backend:3000
     depends_on:
       - backend
     networks:

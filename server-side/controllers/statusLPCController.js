@@ -21,11 +21,14 @@ exports.uploadFile = async (req, res, next) => {
         // Remove the uploaded file after processing
         await fs.promises.unlink(req.file.path);
 
-        //store the result
+        // Get the first sheet name dynamically
+        const sheetNames = Object.keys(result);
+        const firstSheetName = sheetNames[0];
+        const data = result[firstSheetName];
+        // Store the result and data
         cache.set('statusLPCData', result);
-        // Automatically process and sort after upload
-        const data = result.Sheet1;
         cache.set('results', data, 1200);
+
 
         res.status(200).json({
             success: true,
@@ -48,9 +51,10 @@ exports.processAndSortSummaryCards = async (req, res, next) => {
         if (!uploadedData) {
             return next(new ErrorResponse('No data found. Please upload a file first.', 404));
         }
+        const sheetNames = Object.keys(uploadedData);
+        const firstSheetName = sheetNames[0];
+        const data = uploadedData[firstSheetName] || [];
 
-        // Ensure the data is passed as an array
-        const data = uploadedData.Sheet1 || [];
         const processedData = lpcProcessor.summaryCards(data);
 
         // Send the processed summary data
@@ -76,8 +80,9 @@ exports.processAndSortSummaryTable = async (req, res, next) => {
             return next(new ErrorResponse('No data found. Please upload a file first.', 404));
         }
 
-        // Ensure the data is passed as an array
-        const data = uploadedData.Sheet1 || [];
+        const sheetNames = Object.keys(uploadedData);
+        const firstSheetName = sheetNames[0];
+        const data = uploadedData[firstSheetName] || [];
         const processedData = lpcProcessor.summaryTable(data);
 
         // Send the processed summary data
@@ -105,7 +110,9 @@ exports.processAndSortSortedTable = async (req, res, next) => {
         }
 
         // Ensure the data is passed as an array
-        const data = uploadedData.Sheet1 || [];
+        const sheetNames = Object.keys(uploadedData);
+        const firstSheetName = sheetNames[0];
+        const data = uploadedData[firstSheetName] || [];
 
         // Get the filter from the request body
         const { filter = 'ALL' } = req.body;
@@ -137,10 +144,12 @@ exports.processAndFilterDetailedTable = async (req, res, next) => {
         }
 
         // Ensure the data is passed as an array
-        const data = uploadedData.Sheet1 || [];
+        const sheetNames = Object.keys(uploadedData);
+        const firstSheetName = sheetNames[0];
+        const data = uploadedData[firstSheetName] || [];
 
         // Get the filter from the request body
-        const { teamFilter = 'ALL' , businessAreaFilter = 'ALL'} = req.body;
+        const { teamFilter = 'ALL', businessAreaFilter = 'ALL' } = req.body;
 
         // Process the data with the filter
         const processedData = lpcProcessor.detailedTable(data, teamFilter, businessAreaFilter);

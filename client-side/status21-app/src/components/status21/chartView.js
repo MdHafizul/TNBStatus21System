@@ -10,6 +10,8 @@ import {
   Legend,
 } from "chart.js";
 import ChartDataLabels from "chartjs-plugin-datalabels";
+import { apiFetch } from '@/utils/api';
+
 
 // Register Chart.js components and the datalabels plugin
 ChartJS.register(
@@ -65,7 +67,7 @@ export default function ChartView({ filter }) {
 
       const dataType = typeMap[filter] || "disconnected";
 
-      const response = await fetch(`http://localhost:3000/api/v2/status21/process-file`, {
+     const response = await apiFetch('/api/v2/status21/process-file', {
         method: "GET",
         headers: {
           "x-data-type": dataType,

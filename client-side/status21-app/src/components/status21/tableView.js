@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from "react";
 import Snackbar from "../snackBar";
+import { apiFetch } from "@/utils/api";
 
 export default function TableView({ filter }) {
   const [isLoading, setIsLoading] = useState(false);
@@ -27,7 +28,7 @@ export default function TableView({ filter }) {
 
       const dataType = typeMap[filter] || "disconnected";
 
-      const response = await fetch("http://localhost:3000/api/v2/status21/process-file", {
+      const response = await apiFetch("/api/v2/status21/process-file", {
         method: "GET",
         headers: {
           "x-data-type": dataType,

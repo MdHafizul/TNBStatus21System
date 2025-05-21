@@ -1,5 +1,6 @@
 import {useState, useEffect} from 'react';
 import Snackbar from '../snackBar'; 
+import {apiFetch} from '@/utils/api';
 
 export default function SummaryCards(){
     const [isLoading, setIsLoading] = useState(false);  
@@ -18,7 +19,7 @@ export default function SummaryCards(){
         try {
             const results = {};
 
-            const response = await fetch('http://localhost:3000/api/v2/statusLPC/summary-card', {
+            const response = await apiFetch('/api/v2/statusLPC/summary-card', {
                 method: 'GET',
             });
 

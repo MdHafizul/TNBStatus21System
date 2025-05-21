@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Snackbar from "../snackBar";
+import { apiFetch } from "@/utils/api";
 
 export default function SummaryTable() {
     const [isLoading, setIsLoading] = useState(false);
@@ -13,7 +14,7 @@ export default function SummaryTable() {
         async function fetchSummaryData() {
             setIsLoading(true);
             try {
-                const response = await fetch("http://localhost:3000/api/v2/statusLPC/summaryTable");
+                const response = await apiFetch("/api/v2/statusLPC/summaryTable");
                 if (!response.ok) {
                     throw new Error(`Failed to fetch summary data: ${response.statusText}`);
                 }

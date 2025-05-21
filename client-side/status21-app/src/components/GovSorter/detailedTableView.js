@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Snackbar from "../snackBar";
+import { apiFetch } from "@/utils/api";
 
 export default function DetailedTableView({ filter }) {
     const [isLoading, setIsLoading] = useState(false);
@@ -12,7 +13,7 @@ export default function DetailedTableView({ filter }) {
         async function fetchDetailData() {
             setIsLoading(true);
             try {
-                const response = await fetch("http://localhost:3000/api/v2/govSorter/detailedData", {
+                const response = await apiFetch("/api/v2/govSorter/detailedData", {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
                     body: JSON.stringify(filter)

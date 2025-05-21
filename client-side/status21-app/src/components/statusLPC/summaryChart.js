@@ -4,6 +4,7 @@ import { Chart } from 'chart.js/auto';
 import { useEffect, useRef, useState } from 'react';
 import Snackbar from '../snackBar';
 import ChartDataLabels from 'chartjs-plugin-datalabels';
+import { apiFetch } from '@/utils/api';
 
 // Register the plugin
 Chart.register(ChartDataLabels);
@@ -26,7 +27,7 @@ export default function PieChart() {
         async function fetchSummaryData() {
             setIsLoading(true);
             try {
-                const response = await fetch('http://localhost:3000/api/v2/statusLPC/summaryCards');
+                const response = await apiFetch('/api/v2/statusLPC/summaryCards');
                 if (!response.ok) {
                     throw new Error(`Failed to fetch summary data: ${response.statusText}`);
                 }
@@ -159,8 +160,9 @@ export default function PieChart() {
                         {
                             label: 'Unpaid',
                             data: [summaryData.totalUnpaid],
-                            backgroundColor: 'rgba(220, 53, 69, 0.6)',     // Red
-                            borderColor: 'rgba(220, 53, 69, 1)',
+
+                            backgroundColor: 'rgba(255, 193, 7, 0.6)',     // Yellow
+                            borderColor: 'rgba(255, 193, 7, 1)',
                             borderWidth: 1
                         },
                         {
@@ -173,8 +175,8 @@ export default function PieChart() {
                         {
                             label: 'Balance',
                             data: [summaryData.balanceToCollect],
-                            backgroundColor: 'rgba(255, 193, 7, 0.6)',     // Yellow
-                            borderColor: 'rgba(255, 193, 7, 1)',
+                            backgroundColor: 'rgba(220, 53, 69, 0.6)',     // Red
+                            borderColor: 'rgba(220, 53, 69, 1)',
                             borderWidth: 1
                         }
                     ]
